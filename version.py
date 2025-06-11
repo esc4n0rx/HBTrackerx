@@ -15,7 +15,7 @@ class Version:
     """Classe para gerenciar versões da aplicação"""
     
     # Versão atual da aplicação
-    CURRENT_VERSION = "0.0.2"
+    CURRENT_VERSION = "0.0.3"
     APP_NAME = "Sistema de Controle de Caixas"
     
     # URLs do servidor de atualizações
@@ -33,7 +33,7 @@ class Version:
         return {
             "name": Version.APP_NAME,
             "version": Version.CURRENT_VERSION,
-            "build_date": "2025-06-11 11:54:51",
+            "build_date": "2025-06-11 11:56:40",
             "description": "Sistema completo de controle de caixas com inventário inicial, fluxo visual e atualizações automáticas",
             "author": "Desenvolvedor Python",
             "license": "Proprietário",
