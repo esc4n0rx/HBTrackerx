@@ -1,0 +1,9 @@
+{
+  "version": "0.0.1",
+  "release_date": "11/06/2025",
+  "download_url": "https://github.com/esc4n0rx/HBTrackerx/releases/download/v0.0.1/ControleEstoque_v0.0.1.zip",
+  "changelog": "\n        <b>Versão 0.0.1 - Lançamento Inicial</b><br><br>\n        \n        <b>🆕 Novidades:</b><br>\n        • Sistema de inventário inicial<br>\n        • Cálculo preciso de estoque por ativo<br>\n        • Fluxo visual interativo<br>\n        • Sistema de atualizações automáticas<br>\n        • Interface melhorada com ícones<br><br>\n        \n        <b>🔧 Correções:</b><br>\n        • Normalização de nomes de ativos<br>\n        • Matching inteligente entre inventário e movimentos<br>\n        • Cálculos cumulativos corretos<br><br>\n        \n        <b>⚡ Melhorias:</b><br>\n        • Performance otimizada<br>\n        • Validação de dados aprimorada<br>\n        • Exportação de relatórios completos\n        ",
+  "required_version": "0.0.0",
+  "file_size": "25.5 MB",
+  "checksum": "sha256:abc123..."
+}

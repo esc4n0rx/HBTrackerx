@@ -1,4 +1,3 @@
-# main.py - Versão atualizada
 import sys
 import pandas as pd
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QGridLayout, QLabel, QAction, QFileDialog, 

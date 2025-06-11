@@ -99,7 +99,7 @@ def create_version_json():
     version_info = {
         "version": Version.CURRENT_VERSION,
         "release_date": datetime.now().strftime("%d/%m/%Y"),
-        "download_url": f"https://github.com/SEU_USUARIO/SEU_REPO/releases/download/v{Version.CURRENT_VERSION}/ControleEstoque_v{Version.CURRENT_VERSION}.zip",
+        "download_url": f"https://github.com/esc4n0rx/HBTrackerx/releases/download/v{Version.CURRENT_VERSION}/ControleEstoque_v{Version.CURRENT_VERSION}.zip",
         "changelog": """
         <b>Versão 0.0.1 - Lançamento Inicial</b><br><br>
         
