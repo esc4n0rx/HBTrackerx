@@ -1,11 +1,111 @@
 # flow_visual_dialog.py - Interface corrigida e melhorada
 import sys
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea, 
-                            QWidget, QFrame, QGridLayout, QPushButton, QComboBox)
+                            QWidget, QFrame, QGridLayout, QPushButton, QComboBox,
+                            QTableWidget, QTableWidgetItem, QHeaderView)
 from PyQt5.QtGui import QFont, QPainter, QPen, QColor
 from PyQt5.QtCore import Qt, QRect
 from datetime import datetime, timedelta
 import json
+
+class FlowDialog(QDialog):
+    """Diálogo para exibir fluxo clássico de movimentos"""
+    def __init__(self, location_name, flow_data, parent=None):
+        super().__init__(parent)
+        self.location_name = location_name
+        self.flow_data = flow_data
+        self.setWindowTitle(f"Fluxo de Movimentos - {location_name}")
+        self.setGeometry(100, 100, 1000, 600)
+        self.init_ui()
+        self.load_data()
+
+    def init_ui(self):
+        layout = QVBoxLayout(self)
+        
+        # Título
+        title = QLabel(f"📊 Fluxo de Movimentos - {self.location_name}")
+        title_font = QFont()
+        title_font.setPointSize(14)
+        title_font.setBold(True)
+        title.setFont(title_font)
+        layout.addWidget(title)
+        
+        # Tabela
+        self.table = QTableWidget()
+        self.table.setColumnCount(6)
+        self.table.setHorizontalHeaderLabels([
+            '📅 Data', '🔄 Movimento', '📦 Ativo (RTI)', 
+            '📤 Origem', '📥 Destino', '🔢 Quantidade'
+        ])
+        
+        # Configuração da tabela
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Data
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)  # Movimento
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)  # RTI
+        header.setSectionResizeMode(3, QHeaderView.Stretch)           # Origem
+        header.setSectionResizeMode(4, QHeaderView.Stretch)           # Destino
+        header.setSectionResizeMode(5, QHeaderView.ResizeToContents)  # Quantidade
+        
+        self.table.setAlternatingRowColors(True)
+        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        layout.addWidget(self.table)
+        
+        # Botões
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        
+        close_btn = QPushButton("❌ Fechar")
+        close_btn.clicked.connect(self.close)
+        button_layout.addWidget(close_btn)
+        
+        layout.addLayout(button_layout)
+
+    def load_data(self):
+        """Carrega dados na tabela"""
+        if not self.flow_data:
+            self.table.setRowCount(1)
+            self.table.setItem(0, 0, QTableWidgetItem("❌ Nenhum dado encontrado"))
+            return
+        
+        self.table.setRowCount(len(self.flow_data))
+        
+        for row, data in enumerate(self.flow_data):
+            # Data
+            if data.get('data_movimento'):
+                try:
+                    date_obj = datetime.strptime(str(data['data_movimento']), '%Y-%m-%d')
+                    formatted_date = date_obj.strftime('%d/%m/%Y')
+                    self.table.setItem(row, 0, QTableWidgetItem(formatted_date))
+                except:
+                    self.table.setItem(row, 0, QTableWidgetItem(str(data['data_movimento'])))
+            else:
+                self.table.setItem(row, 0, QTableWidgetItem(""))
+            
+            # Movimento
+            movement = data.get('tipo_movimento', '')
+            movement_icons = {
+                'Remessa': '📤',
+                'Regresso': '📥', 
+                'Entrega': '🚚',
+                'Devolução de Entrega': '↩️',
+                'Transferencia': '🔄',
+                'Retorno': '🔙'
+            }
+            icon = movement_icons.get(movement, '📋')
+            self.table.setItem(row, 1, QTableWidgetItem(f"{icon} {movement}"))
+            
+            # RTI
+            self.table.setItem(row, 2, QTableWidgetItem(str(data.get('rti', ''))))
+            
+            # Origem
+            self.table.setItem(row, 3, QTableWidgetItem(str(data.get('local_origem', ''))))
+            
+            # Destino
+            self.table.setItem(row, 4, QTableWidgetItem(str(data.get('local_destino', ''))))
+            
+            # Quantidade
+            self.table.setItem(row, 5, QTableWidgetItem(str(data.get('quantidade', ''))))
 
 class FlowVisualDialog(QDialog):
     def __init__(self, location_name, db_instance, parent=None):

@@ -2,12 +2,13 @@ import sys
 import pandas as pd
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QGridLayout, QLabel, QAction, QFileDialog, 
                              QMessageBox, QGroupBox, QComboBox, QTableView, QHeaderView, QPushButton, QHBoxLayout, 
-                             QTabWidget, QFrame, QSplitter, QTextEdit)
+                             QTabWidget, QFrame, QSplitter, QTextEdit,QDialog,QScrollArea)
 from PyQt5.QtGui import QFont, QStandardItemModel, QStandardItem, QIcon
 from PyQt5.QtCore import Qt
 from database import Database
 from settings_dialog import SettingsDialog
 from flow_dialog import FlowVisualDialog
+from flow_dialog import FlowDialog
 import datetime
 from version import Version
 from update_dialog import UpdateDialog
