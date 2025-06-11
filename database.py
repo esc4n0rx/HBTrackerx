@@ -1,4 +1,4 @@
-# database.py - Versão corrigida
+# database.py - Versão corrigida com cálculos adequados
 import sqlite3
 import pandas as pd
 from collections import defaultdict
@@ -224,7 +224,7 @@ class Database:
         return estoque
 
     def get_daily_stock_evolution(self, location_name):
-        """Retorna evolução diária considerando inventário e matching"""
+        """CORRIGIDO: Retorna evolução diária considerando inventário e matching com normalização de ativos"""
         if not location_name.startswith('LOJA'):
             return []
 
@@ -236,64 +236,164 @@ class Database:
             print(f"Nenhum inventário encontrado para {location_name}")
             return []
 
-        # Busca inventário inicial
+        # **FUNÇÃO AUXILIAR: Normaliza nomes de ativos**
+        def normalize_asset_name(asset_name):
+            """Remove espaços extras e padroniza formato"""
+            if not asset_name:
+                return 'N/A'
+            
+            # Remove espaços extras e converte para maiúscula
+            normalized = str(asset_name).strip().upper()
+            
+            # Remove espaços internos (HB 618 -> HB618)
+            normalized = normalized.replace(' ', '')
+            
+            return normalized
+
+        # Busca inventário inicial e normaliza nomes
         inventory_query = "SELECT ativo, quantidade FROM inventario_inicial WHERE loja_nome_simples = ?"
         initial_stock = {}
         for row in self._execute_query(inventory_query, (inventory_match,)):
-            initial_stock[row['ativo']] = row['quantidade']
+            normalized_asset = normalize_asset_name(row['ativo'])
+            initial_stock[normalized_asset] = row['quantidade']
         
-        print(f"Inventário inicial encontrado: {initial_stock}")
+        print(f"Inventário inicial normalizado: {initial_stock}")
 
         # Busca movimentos ordenados por data
         movements_query = """
         SELECT data_movimento, tipo_movimento, rti, quantidade, local_origem, local_destino
         FROM movimentos 
         WHERE (local_origem = ? OR local_destino = ?) AND data_movimento >= '2025-06-08'
-        ORDER BY data_movimento ASC
+        ORDER BY data_movimento ASC, id ASC
         """
         movements = self._execute_query(movements_query, (location_name, location_name))
 
-        # Calcula evolução dia a dia
+        # **CORREÇÃO PRINCIPAL: Calcula evolução dia a dia CUMULATIVA com normalização**
         daily_evolution = []
-        current_stock = initial_stock.copy()
-        current_date = None
-        daily_movements = []
-
+        current_stock = initial_stock.copy()  # Começa com inventário inicial
+        
+        # Agrupa movimentos por data
+        from collections import defaultdict
+        movements_by_date = defaultdict(list)
         for mov in movements:
-            mov_date = mov['data_movimento']
+            movements_by_date[mov['data_movimento']].append(mov)
+
+        print(f"Datas com movimentos: {sorted(movements_by_date.keys())}")
+
+        # Processa cada data em ordem
+        for date in sorted(movements_by_date.keys()):
+            day_movements = movements_by_date[date]
             
-            if current_date != mov_date:
-                # Salva dia anterior se existir
-                if current_date is not None:
-                    daily_evolution.append({
-                        'date': current_date,
-                        'stock': current_stock.copy(),
-                        'movements': daily_movements.copy()
-                    })
+            print(f"\n--- Processando data: {date} ---")
+            print(f"Estoque no início do dia: {current_stock}")
+            
+            # **CRÍTICO: Aplica todos os movimentos do dia NO ESTOQUE ATUAL**
+            for mov in day_movements:
+                raw_rti = mov['rti'] if mov['rti'] else 'N/A'
+                # **NORMALIZAÇÃO: Remove espaços e padroniza**
+                rti = normalize_asset_name(raw_rti)
+                qtde = mov['quantidade']
+                tipo = mov['tipo_movimento']
                 
-                current_date = mov_date
-                daily_movements = []
+                print(f"Movimento original: {tipo} {qtde} '{raw_rti}' -> normalizado: '{rti}'")
+                
+                # Garante que o ativo existe no estoque
+                if rti not in current_stock:
+                    current_stock[rti] = 0
+                    print(f"Criando novo ativo {rti} com quantidade 0")
+                
+                # **CORREÇÃO: Aplica movimento CUMULATIVO no estoque atual**
+                old_qty = current_stock[rti]
+                
+                if mov['local_destino'] == location_name and tipo == 'Remessa':
+                    current_stock[rti] += qtde
+                    print(f"  ✅ Remessa: {rti} {old_qty} + {qtde} = {current_stock[rti]}")
+                elif mov['local_origem'] == location_name and tipo == 'Regresso':
+                    current_stock[rti] -= qtde
+                    print(f"  ❌ Regresso: {rti} {old_qty} - {qtde} = {current_stock[rti]}")
+                else:
+                    print(f"  ⚠️ Movimento ignorado: {tipo} (origem: {mov['local_origem']}, destino: {mov['local_destino']})")
 
-            # Aplica movimento
-            rti = mov['rti'] if mov['rti'] else 'N/A'
-            qtde = mov['quantidade']
-            
-            if mov['local_destino'] == location_name and mov['tipo_movimento'] == 'Remessa':
-                current_stock[rti] = current_stock.get(rti, 0) + qtde
-            elif mov['local_origem'] == location_name and mov['tipo_movimento'] == 'Regresso':
-                current_stock[rti] = current_stock.get(rti, 0) - qtde
+            print(f"Estoque final do dia {date}: {current_stock}")
 
-            daily_movements.append(mov)
-
-        # Adiciona último dia se existir
-        if current_date:
+            # **CRÍTICO: Salva estado do dia com CÓPIA do estoque final calculado**
             daily_evolution.append({
-                'date': current_date,
-                'stock': current_stock.copy(),
-                'movements': daily_movements
+                'date': date,
+                'stock': current_stock.copy(),  # **IMPORTANTE: Fazer cópia do estado final**
+                'movements': day_movements.copy()
             })
 
+        print(f"\nEvolução final calculada:")
+        for i, day in enumerate(daily_evolution):
+            print(f"Dia {i+1} ({day['date']}): {day['stock']}")
+
         return daily_evolution
+
+    def insert_inventory_data(self, df: pd.DataFrame, inventory_date='2025-06-08'):
+        """Insere dados do inventário inicial com normalização de ativos"""
+        print("=== INSERINDO INVENTÁRIO COM NORMALIZAÇÃO ===")
+        print(f"DataFrame recebido: {len(df)} linhas")
+        
+        # **FUNÇÃO AUXILIAR: Normaliza nomes de ativos**
+        def normalize_asset_name(asset_name):
+            """Remove espaços extras e padroniza formato"""
+            if not asset_name:
+                return 'N/A'
+            
+            # Remove espaços extras e converte para maiúscula
+            normalized = str(asset_name).strip().upper()
+            
+            # Remove espaços internos (HB 618 -> HB618)
+            normalized = normalized.replace(' ', '')
+            
+            return normalized
+        
+        # Limpa inventário anterior
+        self.cursor.execute("DELETE FROM inventario_inicial")
+        print("Inventário anterior limpo")
+        
+        successful_inserts = 0
+        failed_inserts = []
+        
+        for index, row in df.iterrows():
+            try:
+                loja_nome_simples = str(row['loja_nome']).strip().upper()
+                
+                # **NORMALIZAÇÃO: Aplica normalização nos ativos**
+                raw_ativo = str(row['ativo']).strip()
+                ativo_normalizado = normalize_asset_name(raw_ativo)
+                
+                quantidade = int(float(row['quantidade']))
+                
+                print(f"Inserindo: {loja_nome_simples} | '{raw_ativo}' -> '{ativo_normalizado}' | {quantidade}")
+                
+                self.cursor.execute("""
+                INSERT OR REPLACE INTO inventario_inicial 
+                (loja_nome_simples, ativo, quantidade, data_inventario)
+                VALUES (?, ?, ?, ?)
+                """, (loja_nome_simples, ativo_normalizado, quantidade, inventory_date))
+                
+                successful_inserts += 1
+                
+            except Exception as e:
+                failed_inserts.append({
+                    'linha': index + 1,
+                    'loja_original': row.get('loja_nome', 'N/A'),
+                    'motivo': f'Erro: {str(e)}'
+                })
+                print(f"❌ Erro na linha {index + 1}: {e}")
+        
+        self.conn.commit()
+        print(f"✅ {successful_inserts} registros inseridos com sucesso")
+        
+        # Verifica o que foi inserido
+        verification_query = "SELECT loja_nome_simples, ativo, quantidade FROM inventario_inicial ORDER BY loja_nome_simples"
+        inserted_data = self._execute_query(verification_query)
+        print(f"Dados no banco após normalização: {len(inserted_data)} registros")
+        for row in inserted_data:
+            print(f"  {row['loja_nome_simples']} | {row['ativo']} | {row['quantidade']}")
+        
+        return successful_inserts, failed_inserts
 
     # Resto dos métodos permanecem iguais...
     def _execute_query(self, query, params=()):
