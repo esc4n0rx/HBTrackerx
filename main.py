@@ -10,6 +10,8 @@ from database import Database
 from settings_dialog import SettingsDialog
 from flow_dialog import FlowVisualDialog
 import datetime
+from version import Version
+from update_dialog import UpdateDialog
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -66,6 +68,58 @@ class MainWindow(QMainWindow):
         settings_action = QAction("⚙️ Configurações", self)
         settings_action.triggered.connect(self.open_settings)
         tools_menu.addAction(settings_action)
+
+
+         # NOVO: Menu de Atualizações
+        update_menu = menu_bar.addMenu("🔄 Atualizações")
+        
+        check_updates_action = QAction("🔍 Verificar Atualizações", self)
+        check_updates_action.triggered.connect(self.check_updates_manual)
+        update_menu.addAction(check_updates_action)
+        
+        update_menu.addSeparator()
+        
+        about_action = QAction("ℹ️ Sobre", self)
+        about_action.triggered.connect(self.show_about)
+        update_menu.addAction(about_action)
+        
+        # Verificação automática na inicialização (opcional)
+        #QTimer.singleShot(2000, self.check_updates_auto)
+
+    def check_updates_manual(self):
+        """Abre diálogo de atualizações manualmente"""
+        dialog = UpdateDialog(self, auto_check=False)
+        dialog.exec_()
+
+    def check_updates_auto(self):
+        """Verificação automática silenciosa"""
+        dialog = UpdateDialog(self, auto_check=True)
+        dialog.exec_()
+
+    def show_about(self):
+        """Mostra informações sobre a aplicação"""
+        app_info = Version.get_app_info()
+        
+        about_text = f"""
+        <h2>{app_info['name']}</h2>
+        <p><b>Versão:</b> {app_info['version']}</p>
+        <p><b>Data de Build:</b> {app_info['build_date']}</p>
+        <p><b>Descrição:</b> {app_info['description']}</p>
+        
+        <hr>
+        
+        <p><b>Desenvolvido com:</b></p>
+        <ul>
+            <li>Python 3.8+</li>
+            <li>PyQt5</li>
+            <li>SQLite</li>
+            <li>Pandas</li>
+        </ul>
+        
+        <p><small>© 2025 - Sistema de Controle de Caixas</small></p>
+        """
+        
+        QMessageBox.about(self, f"Sobre {app_info['name']}", about_text)
 
     def init_ui(self):
         main_widget = QWidget()
