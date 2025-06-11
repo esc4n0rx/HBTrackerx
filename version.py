@@ -15,7 +15,7 @@ class Version:
     """Classe para gerenciar versões da aplicação"""
     
     # Versão atual da aplicação
-    CURRENT_VERSION = "0.0.1"
+    CURRENT_VERSION = "0.0.2"
     APP_NAME = "Sistema de Controle de Caixas"
     
     # URLs do servidor de atualizações
@@ -29,12 +29,16 @@ class Version:
     
     @staticmethod
     def get_app_info():
-        """Retorna informações da aplicação"""
+        """Retorna informações da aplicação - VERSÃO MELHORADA"""
         return {
             "name": Version.APP_NAME,
             "version": Version.CURRENT_VERSION,
-            "build_date": "2025-06-11",
-            "description": "Sistema de Controle de Caixas com Inventário"
+            "build_date": "11/06/2025",
+            "description": "Sistema completo de controle de caixas com inventário inicial, fluxo visual e atualizações automáticas",
+            "author": "Desenvolvedor Python",
+            "license": "Proprietário",
+            "website": "https://github.com/esc4n0rx/HBTrackerx",
+            "support_email": "suporte@exemplo.com"
         }
 
 class UpdateChecker(QThread):

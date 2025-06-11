@@ -96,29 +96,151 @@ class MainWindow(QMainWindow):
         dialog.exec_()
 
     def show_about(self):
-        """Mostra informações sobre a aplicação"""
+        """Mostra informações sobre a aplicação - VERSÃO MELHORADA"""
         app_info = Version.get_app_info()
         
+        # NOVO: Layout melhorado com mais informações
         about_text = f"""
-        <h2>{app_info['name']}</h2>
-        <p><b>Versão:</b> {app_info['version']}</p>
-        <p><b>Data de Build:</b> {app_info['build_date']}</p>
-        <p><b>Descrição:</b> {app_info['description']}</p>
+        <div style="text-align: center;">
+            <h1>🔧 {app_info['name']}</h1>
+            <h3 style="color: #007bff;">Versão {app_info['version']}</h3>
+        </div>
         
         <hr>
         
-        <p><b>Desenvolvido com:</b></p>
+        <h3>📊 Informações da Versão</h3>
+        <table border="0" cellpadding="5">
+            <tr><td><b>🏷️ Versão:</b></td><td>{app_info['version']}</td></tr>
+            <tr><td><b>📅 Data de Build:</b></td><td>{app_info['build_date']}</td></tr>
+            <tr><td><b>📝 Descrição:</b></td><td>{app_info['description']}</td></tr>
+            <tr><td><b>🤖 Tipo de Build:</b></td><td>{'Automático' if app_info['version'] != '0.0.1' else 'Manual'}</td></tr>
+        </table>
+        
+        <hr>
+        
+        <h3>⚡ Funcionalidades Principais</h3>
         <ul>
-            <li>Python 3.8+</li>
-            <li>PyQt5</li>
-            <li>SQLite</li>
-            <li>Pandas</li>
+            <li>📦 <b>Inventário Inicial:</b> Carregamento de estoque base</li>
+            <li>📊 <b>Controle de Movimentos:</b> Remessas, regressos e transferências</li>
+            <li>🎯 <b>Fluxo Visual:</b> Acompanhe mudanças dia a dia</li>
+            <li>📈 <b>Relatórios Completos:</b> Exportação em Excel/CSV</li>
+            <li>🔄 <b>Atualizações Automáticas:</b> Sistema sempre atualizado</li>
+            <li>🏪 <b>Multi-Local:</b> CDs e Lojas integrados</li>
         </ul>
         
-        <p><small>© 2025 - Sistema de Controle de Caixas</small></p>
+        <hr>
+        
+        <h3>🛠️ Tecnologias Utilizadas</h3>
+        <table border="0" cellpadding="3">
+            <tr>
+                <td><b>🐍 Python:</b></td>
+                <td>3.8+ (Linguagem principal)</td>
+            </tr>
+            <tr>
+                <td><b>🖼️ PyQt5:</b></td>
+                <td>Interface gráfica moderna</td>
+            </tr>
+            <tr>
+                <td><b>🗃️ SQLite:</b></td>
+                <td>Banco de dados integrado</td>
+            </tr>
+            <tr>
+                <td><b>📊 Pandas:</b></td>
+                <td>Processamento de dados</td>
+            </tr>
+            <tr>
+                <td><b>🌐 Requests:</b></td>
+                <td>Sistema de atualizações</td>
+            </tr>
+            <tr>
+                <td><b>📦 PyInstaller:</b></td>
+                <td>Empacotamento executável</td>
+            </tr>
+        </table>
+        
+        <hr>
+        
+        <h3>🔄 Sistema de Atualizações</h3>
+        <p>Esta versão inclui sistema automático de atualizações:</p>
+        <ul>
+            <li>✅ Verificação automática na inicialização</li>
+            <li>✅ Download e instalação sem complicações</li>
+            <li>✅ Backup automático antes da atualização</li>
+            <li>✅ Changelog detalhado de cada versão</li>
+        </ul>
+        
+        <p style="text-align: center; margin-top: 20px;">
+            <small style="color: #666;">
+                © 2025 - Sistema de Controle de Caixas<br>
+                <b>🏗️ Build:</b> {datetime.now().strftime('%d/%m/%Y às %H:%M')}<br>
+                <b>🔗 Powered by:</b> GitHub Actions + PyInstaller
+            </small>
+        </p>
         """
         
-        QMessageBox.about(self, f"Sobre {app_info['name']}", about_text)
+        # Cria diálogo customizado com scroll
+        about_dialog = QDialog(self)
+        about_dialog.setWindowTitle(f"Sobre {app_info['name']}")
+        about_dialog.setFixedSize(600, 700)
+        
+        layout = QVBoxLayout(about_dialog)
+        
+        # Área de scroll para o conteúdo
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        
+        # Widget de conteúdo
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+        
+        # Label com o texto HTML
+        about_label = QLabel(about_text)
+        about_label.setWordWrap(True)
+        about_label.setOpenExternalLinks(True)
+        about_label.setStyleSheet("""
+            QLabel {
+                padding: 20px;
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                line-height: 1.4;
+            }
+        """)
+        
+        content_layout.addWidget(about_label)
+        scroll_area.setWidget(content_widget)
+        layout.addWidget(scroll_area)
+        
+        # Botões
+        button_layout = QHBoxLayout()
+        
+        # Botão para verificar atualizações
+        update_btn = QPushButton("🔄 Verificar Atualizações")
+        update_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #007bff;
+                color: white;
+                padding: 8px 16px;
+                border: none;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #0056b3;
+            }
+        """)
+        update_btn.clicked.connect(self.check_updates_manual)
+        button_layout.addWidget(update_btn)
+        
+        button_layout.addStretch()
+        
+        # Botão fechar
+        close_btn = QPushButton("❌ Fechar")
+        close_btn.clicked.connect(about_dialog.close)
+        button_layout.addWidget(close_btn)
+        
+        layout.addLayout(button_layout)
+        
+        about_dialog.exec_()
 
     def init_ui(self):
         main_widget = QWidget()
