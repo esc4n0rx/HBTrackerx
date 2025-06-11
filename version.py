@@ -33,7 +33,7 @@ class Version:
         return {
             "name": Version.APP_NAME,
             "version": Version.CURRENT_VERSION,
-            "build_date": "11/06/2025",
+            "build_date": "2025-06-11 11:47:23",
             "description": "Sistema completo de controle de caixas com inventário inicial, fluxo visual e atualizações automáticas",
             "author": "Desenvolvedor Python",
             "license": "Proprietário",
