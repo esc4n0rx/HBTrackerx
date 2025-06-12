@@ -21,17 +21,30 @@ import datetime
 from version import Version
 from update_dialog import UpdateDialog
 from tools_dialog import ToolsDialog
+from screen_utils import ScreenManager, ResponsiveDialog
 
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow, ResponsiveDialog):
     def __init__(self):
         super().__init__()
         self.db = Database("estoque.db")
         self.setWindowTitle("Sistema de Controle de Caixas v2.2 - Com Suporte para CDs")
-        self.setGeometry(100, 100, 1400, 900)
         
-        # **CORREÇÃO: Configura font base maior**
+        # **CORREÇÃO: Janela principal responsiva**
+        width, height = ScreenManager.get_responsive_size(0.85, 0.8, 1200, 800, 1600, 1000)
+        self.setGeometry(100, 100, width, height)
+        
+        # **CORREÇÃO: Centraliza janela**
+        ScreenManager.center_window(self)
+        
+        # **CORREÇÃO: Configura font base responsivo**
+        screen_geometry = ScreenManager.get_screen_geometry()
+        if screen_geometry.width() < 1920:  # Telas menores
+            font_size = 9
+        else:  # Telas grandes
+            font_size = 10
+            
         base_font = QFont()
-        base_font.setPointSize(10)
+        base_font.setPointSize(font_size)
         self.setFont(base_font)
         
         self.cd_map = {
@@ -46,29 +59,20 @@ class MainWindow(QMainWindow):
         self.update_all_views()
 
     def show_visual_flow_dialog(self):
-        """Mostra o diálogo de fluxo visual melhorado"""
+        """Mostra o diálogo de fluxo visual melhorado - VERSÃO RESPONSIVA"""
         location_text = self.location_combo.currentText()
         if location_text and "Selecione" not in location_text:
             location_name = location_text.replace("🏢 ", "").replace("🏪 ", "")
             
-            # **MELHORIA: Para CDs, usa FlowVisualDialog que tem botão de análise completa**
+            # Para CDs, usa FlowVisualDialog que tem botão de análise completa
             from flow_dialog import FlowVisualDialog, CDFlowAnalysisDialog
             
             if not location_name.startswith('LOJA'):  # É um CD
                 # Pergunta se quer fluxo visual ou análise completa
                 from PyQt5.QtWidgets import QMessageBox
                 
-                reply = QMessageBox.question(
-                    self, "Tipo de Análise",
-                    f"Qual tipo de análise deseja para {location_name}?\n\n"
-                    "• Fluxo Visual: Visualização dia a dia\n"
-                    "• Análise Completa: Relatório detalhado com totais",
-                    QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
-                    QMessageBox.Yes
-                )
-                
-                # Customiza os botões
-                msg_box = QMessageBox()
+                # **CORREÇÃO: Dialog responsivo**
+                msg_box = QMessageBox(self)
                 msg_box.setWindowTitle("Tipo de Análise")
                 msg_box.setText(f"Qual análise deseja para {location_name}?")
                 msg_box.setInformativeText("Escolha o tipo de análise:")
@@ -77,14 +81,17 @@ class MainWindow(QMainWindow):
                 complete_button = msg_box.addButton("📈 Análise Completa", QMessageBox.NoRole)
                 cancel_button = msg_box.addButton("❌ Cancelar", QMessageBox.RejectRole)
                 
-                msg_box.exec_()
+                # **CORREÇÃO: Tamanho responsivo para message box**
+                msg_box.setFont(QFont("Arial", 10))
+                
+                result = msg_box.exec_()
                 
                 if msg_box.clickedButton() == complete_button:
                     dialog = CDFlowAnalysisDialog(location_name, self.db, self)
                     dialog.exec_()
                 elif msg_box.clickedButton() == visual_button:
-                        dialog = FlowVisualDialog(location_name, self.db, self)
-                        dialog.exec_()
+                    dialog = FlowVisualDialog(location_name, self.db, self)
+                    dialog.exec_()
             else:
                 # Para lojas, usa FlowVisualDialog normal
                 dialog = FlowVisualDialog(location_name, self.db, self)
@@ -1012,12 +1019,25 @@ if __name__ == '__main__':
     app.setAttribute(Qt.AA_EnableHighDpiScaling, True)
     app.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
     
-    # **CORREÇÃO: Configura font global da aplicação**
-    app.setFont(QFont("Arial", 10))
+    # **CORREÇÃO: Font global responsivo**
+    screen = app.primaryScreen()
+    screen_size = screen.size()
+    
+    if screen_size.width() < 1920:
+        app.setFont(QFont("Arial", 9))
+    else:
+        app.setFont(QFont("Arial", 10))
     
     # Configuração do estilo da aplicação
     app.setStyle('Fusion')
     
     window = MainWindow()
     window.show()
+    
+    # **NOVO: Verificação automática de atualizações na inicialização**
+    try:
+        update_dialog = UpdateDialog(window, auto_check=True)
+    except Exception as e:
+        print(f"⚠️ Não foi possível verificar atualizações: {e}")
+    
     sys.exit(app.exec_())

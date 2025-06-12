@@ -8,31 +8,35 @@ from PyQt5.QtGui import QFont, QPainter, QPen, QColor
 from PyQt5.QtCore import Qt, QRect
 from datetime import datetime, timedelta
 from collections import defaultdict
+from screen_utils import ScreenManager, ResponsiveDialog
 import json
 
-class FlowDialog(QDialog):
-    """Diálogo para exibir fluxo clássico de movimentos"""
+class FlowDialog(QDialog, ResponsiveDialog):
+    """Diálogo para exibir fluxo clássico de movimentos - VERSÃO RESPONSIVA"""
     def __init__(self, location_name, flow_data, parent=None):
         super().__init__(parent)
         self.location_name = location_name
         self.flow_data = flow_data
         self.setWindowTitle(f"Fluxo de Movimentos - {location_name}")
-        self.setGeometry(100, 100, 1000, 600)
+        
+        # **CORREÇÃO: Usa sistema responsivo**
+        self.make_responsive("medium", center=True)
+        
         self.init_ui()
         self.load_data()
 
     def init_ui(self):
         layout = QVBoxLayout(self)
         
-        # Título
+        # Título responsivo
         title = QLabel(f"📊 Fluxo de Movimentos - {self.location_name}")
         title_font = QFont()
-        title_font.setPointSize(16)
+        title_font.setPointSize(14)  # **CORREÇÃO: Fonte menor**
         title_font.setBold(True)
         title.setFont(title_font)
         layout.addWidget(title)
         
-        # Tabela
+        # Tabela responsiva
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels([
@@ -40,16 +44,18 @@ class FlowDialog(QDialog):
             '📤 Origem', '📥 Destino', '🔢 Quantidade'
         ])
         
+        # **CORREÇÃO: Fonte ajustada para responsividade**
         table_font = QFont()
-        table_font.setPointSize(12)
+        table_font.setPointSize(10)  # Reduzido de 12 para 10
         self.table.setFont(table_font)
         
         header = self.table.horizontalHeader()
         header_font = QFont()
-        header_font.setPointSize(12)
+        header_font.setPointSize(10)  # Reduzido de 12 para 10
         header_font.setBold(True)
         header.setFont(header_font)
         
+        # **CORREÇÃO: Headers responsivos**
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
@@ -61,12 +67,12 @@ class FlowDialog(QDialog):
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         layout.addWidget(self.table)
         
-        # Botões
+        # Botões responsivos
         button_layout = QHBoxLayout()
         button_layout.addStretch()
         
         close_btn = QPushButton("❌ Fechar")
-        close_btn.setFont(QFont("Arial", 12))
+        close_btn.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
         close_btn.clicked.connect(self.close)
         button_layout.addWidget(close_btn)
         
@@ -114,30 +120,31 @@ class FlowDialog(QDialog):
             # Quantidade
             self.table.setItem(row, 5, QTableWidgetItem(str(data.get('quantidade', ''))))
 
-class CDFlowAnalysisDialog(QDialog):
-    """Diálogo específico para análise completa de fluxo de CDs"""
+class CDFlowAnalysisDialog(QDialog, ResponsiveDialog):
+    """Diálogo específico para análise completa de fluxo de CDs - VERSÃO RESPONSIVA"""
     
     def __init__(self, cd_name, db_instance, parent=None):
         super().__init__(parent)
         self.cd_name = cd_name
         self.db = db_instance
         self.setWindowTitle(f"Análise Completa de Fluxo - {cd_name}")
-        self.setGeometry(100, 100, 1600, 900)
-        self.setMinimumSize(1400, 800)
+        
+        # **CORREÇÃO: Usa sistema responsivo para diálogos grandes**
+        self.make_responsive("large", center=True)
         
         self.init_ui()
         self.load_cd_analysis()
 
     def init_ui(self):
-        """Inicializa interface com abas específicas para CDs"""
+        """Inicializa interface com abas específicas para CDs - VERSÃO RESPONSIVA"""
         main_layout = QVBoxLayout(self)
         
-        # Cabeçalho
+        # Cabeçalho responsivo
         header_layout = QHBoxLayout()
         
         title = QLabel(f"📊 Análise Completa de Fluxo - {self.cd_name}")
         title_font = QFont()
-        title_font.setPointSize(18)
+        title_font.setPointSize(16)  # **CORREÇÃO: Fonte ajustada**
         title_font.setBold(True)
         title.setFont(title_font)
         header_layout.addWidget(title)
@@ -146,7 +153,7 @@ class CDFlowAnalysisDialog(QDialog):
         
         # Período de análise
         period_label = QLabel("📅 Período: Todos os registros")
-        period_label.setFont(QFont("Arial", 12))
+        period_label.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
         period_label.setStyleSheet("color: #666;")
         header_layout.addWidget(period_label)
         
@@ -154,6 +161,7 @@ class CDFlowAnalysisDialog(QDialog):
         
         # Widget de abas para diferentes análises
         self.tabs = QTabWidget()
+        self.tabs.setFont(QFont("Arial", 9))  # **CORREÇÃO: Fonte das abas menor**
         
         # Aba 1: Resumo Executivo
         self.create_summary_tab()
@@ -172,81 +180,76 @@ class CDFlowAnalysisDialog(QDialog):
         
         main_layout.addWidget(self.tabs)
         
-        # Botões de ação
+        # Botões de ação responsivos
         button_layout = QHBoxLayout()
         
         export_btn = QPushButton("💾 Exportar Análise Completa")
-        export_btn.setFont(QFont("Arial", 12))
-        export_btn.setStyleSheet("background-color: #28a745; color: white; padding: 8px 16px;")
+        export_btn.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
+        export_btn.setStyleSheet("background-color: #28a745; color: white; padding: 6px 12px;")  # **CORREÇÃO: Padding menor**
         export_btn.clicked.connect(self.export_analysis)
         button_layout.addWidget(export_btn)
         
         button_layout.addStretch()
         
         close_btn = QPushButton("❌ Fechar")
-        close_btn.setFont(QFont("Arial", 12))
+        close_btn.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
         close_btn.clicked.connect(self.close)
         button_layout.addWidget(close_btn)
         
         main_layout.addLayout(button_layout)
 
-    def create_summary_tab(self):
-        """Aba de resumo executivo"""
-        tab = QWidget()
-        layout = QVBoxLayout(tab)
+    def create_summary_card(self, title, value, subtitle, color):
+        """Cria um card de resumo RESPONSIVO"""
+        card = QFrame()
+        card.setFrameStyle(QFrame.Box)
+        card.setLineWidth(2)
+        card.setStyleSheet(f"""
+            QFrame {{
+                background-color: white;
+                border: 2px solid {color};
+                border-radius: 8px;
+                margin: 3px;
+            }}
+        """)
+        # **CORREÇÃO: Altura mínima menor e responsiva**
+        card.setMinimumHeight(80)  # Reduzido de 120 para 80
+        card.setMaximumHeight(120)
         
-        # Cards de resumo
-        cards_layout = QGridLayout()
+        layout = QVBoxLayout(card)
+        layout.setSpacing(3)  # **CORREÇÃO: Espaçamento menor**
+        layout.setContentsMargins(10, 8, 10, 8)  # **CORREÇÃO: Margens menores**
         
-        # Card de Saídas Totais
-        self.outbound_card = self.create_summary_card(
-            "📤 SAÍDAS TOTAIS", "0", "Para todas as lojas", "#dc3545"
-        )
-        cards_layout.addWidget(self.outbound_card, 0, 0)
+        # Título
+        title_label = QLabel(title)
+        title_label.setAlignment(Qt.AlignCenter)
+        title_font = QFont()
+        title_font.setPointSize(9)  # **CORREÇÃO: Fonte menor**
+        title_font.setBold(True)
+        title_label.setFont(title_font)
+        title_label.setStyleSheet(f"color: {color};")
+        layout.addWidget(title_label)
         
-        # Card de Retornos Totais
-        self.inbound_card = self.create_summary_card(
-            "📥 RETORNOS TOTAIS", "0", "Das lojas", "#28a745"
-        )
-        cards_layout.addWidget(self.inbound_card, 0, 1)
+        # Valor principal
+        value_label = QLabel(value)
+        value_label.setAlignment(Qt.AlignCenter)
+        value_font = QFont()
+        value_font.setPointSize(14)  # **CORREÇÃO: Fonte menor (era 18)
+        value_font.setBold(True)
+        value_label.setFont(value_font)
+        value_label.setStyleSheet(f"color: {color};")
+        layout.addWidget(value_label)
         
-        # Card de Transferências
-        self.transfers_card = self.create_summary_card(
-            "🔄 TRANSFERÊNCIAS", "0", "Entre CDs", "#007bff"
-        )
-        cards_layout.addWidget(self.transfers_card, 0, 2)
+        # Subtítulo
+        subtitle_label = QLabel(subtitle)
+        subtitle_label.setAlignment(Qt.AlignCenter)
+        subtitle_label.setFont(QFont("Arial", 8))  # **CORREÇÃO: Fonte menor**
+        subtitle_label.setStyleSheet("color: #666;")
+        layout.addWidget(subtitle_label)
         
-        # Card de Saldo Líquido
-        self.balance_card = self.create_summary_card(
-            "⚖️ SALDO LÍQUIDO", "0", "Entrada - Saída", "#6c757d"
-        )
-        cards_layout.addWidget(self.balance_card, 0, 3)
+        # Armazenar referência ao label de valor para atualização
+        card.value_label = value_label
         
-        layout.addLayout(cards_layout)
-        
-        # Gráfico de movimentação por ativo
-        assets_group = QGroupBox("📊 Movimentação por Ativo")
-        assets_layout = QVBoxLayout()
-        
-        self.assets_table = QTableWidget()
-        self.assets_table.setColumnCount(5)
-        self.assets_table.setHorizontalHeaderLabels([
-            '📦 Ativo', '📤 Saídas', '📥 Entradas', '🔄 Transferências', '⚖️ Saldo'
-        ])
-        
-        # Configurar tabela
-        header = self.assets_table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
-        header.setSectionResizeMode(2, QHeaderView.Stretch)
-        header.setSectionResizeMode(3, QHeaderView.Stretch)
-        header.setSectionResizeMode(4, QHeaderView.Stretch)
-        
-        assets_layout.addWidget(self.assets_table)
-        assets_group.setLayout(assets_layout)
-        layout.addWidget(assets_group)
-        
-        self.tabs.addTab(tab, "📊 Resumo")
+        return card
 
     def create_outbound_tab(self):
         """Aba de análise de saídas (Remessas)"""
@@ -891,18 +894,18 @@ class CDFlowAnalysisDialog(QDialog):
         except Exception as e:
             QMessageBox.critical(self, "❌ Erro", f"Erro ao exportar análise:\n{e}")
 
-class FlowVisualDialog(QDialog):
-        """Diálogo de fluxo visual melhorado"""
+class FlowVisualDialog(QDialog, ResponsiveDialog):
+        """Diálogo de fluxo visual melhorado - VERSÃO RESPONSIVA"""
         def __init__(self, location_name, db_instance, parent=None):
             super().__init__(parent)
             self.location_name = location_name
             self.db = db_instance
             self.setWindowTitle(f"Fluxo Visual - {location_name}")
             
-            self.setGeometry(100, 100, 1400, 800)
-            self.setMinimumSize(1200, 700)
+            # **CORREÇÃO: Usa sistema responsivo**
+            self.make_responsive("large", center=True)
             
-            # **MELHORIA: Detecta se é CD e oferece análise completa**
+            # Detecta se é CD e oferece análise completa
             self.is_cd = not location_name.startswith('LOJA')
             
             if self.is_cd:
@@ -916,11 +919,12 @@ class FlowVisualDialog(QDialog):
             self.update_flow_display()
 
         def init_ui(self):
-            """Interface melhorada"""
+            """Interface melhorada e RESPONSIVA"""
             main_layout = QVBoxLayout(self)
             
+            # **CORREÇÃO: Fonte base menor**
             base_font = QFont()
-            base_font.setPointSize(12)
+            base_font.setPointSize(10)  # Reduzido de 12 para 10
             self.setFont(base_font)
             
             # Cabeçalho melhorado
@@ -928,22 +932,22 @@ class FlowVisualDialog(QDialog):
             
             title_label = QLabel(f"Evolução do Estoque - {self.location_name}")
             title_font = QFont()
-            title_font.setPointSize(18)
+            title_font.setPointSize(14)  # **CORREÇÃO: Fonte menor (era 18)
             title_font.setBold(True)
             title_label.setFont(title_font)
             header_layout.addWidget(title_label)
             
             header_layout.addStretch()
             
-            # **MELHORIA: Botão de análise completa para CDs**
+            # Botão de análise completa para CDs
             if self.is_cd:
                 self.analysis_button = QPushButton("📊 Análise Completa")
-                self.analysis_button.setFont(QFont("Arial", 12))
+                self.analysis_button.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
                 self.analysis_button.setStyleSheet("""
                     QPushButton {
                         background-color: #007bff;
                         color: white;
-                        padding: 8px 16px;
+                        padding: 6px 12px;
                         border: none;
                         border-radius: 4px;
                         font-weight: bold;
@@ -957,12 +961,12 @@ class FlowVisualDialog(QDialog):
             
             # Filtro por ativo
             filter_label = QLabel("Filtrar por ativo:")
-            filter_label.setFont(QFont("Arial", 12))
+            filter_label.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
             header_layout.addWidget(filter_label)
             
             self.asset_combo = QComboBox()
             self.asset_combo.addItem("Todos")
-            self.asset_combo.setFont(QFont("Arial", 12))
+            self.asset_combo.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
             
             # Detecta ativos
             if self.daily_data:
@@ -993,7 +997,7 @@ class FlowVisualDialog(QDialog):
             
             main_layout.addLayout(header_layout)
             
-            # Área de scroll
+            # Área de scroll responsiva
             self.scroll_area = QScrollArea()
             self.scroll_area.setWidgetResizable(True)
             self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -1001,28 +1005,30 @@ class FlowVisualDialog(QDialog):
             
             self.flow_widget = QWidget()
             self.flow_layout = QHBoxLayout(self.flow_widget)
-            self.flow_layout.setSpacing(20)
-            self.flow_layout.setContentsMargins(15, 15, 15, 15)
+            self.flow_layout.setSpacing(15)  # **CORREÇÃO: Espaçamento menor**
+            self.flow_layout.setContentsMargins(10, 10, 10, 10)  # **CORREÇÃO: Margens menores**
             
             self.scroll_area.setWidget(self.flow_widget)
             main_layout.addWidget(self.scroll_area)
             
-            # Botões de ação
+            # Botões de ação responsivos
             button_layout = QHBoxLayout()
             
             export_btn = QPushButton("💾 Exportar Fluxo")
-            export_btn.setFont(QFont("Arial", 12))
+            export_btn.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
             export_btn.clicked.connect(self.export_flow)
             button_layout.addWidget(export_btn)
             
             button_layout.addStretch()
             
             close_btn = QPushButton("❌ Fechar")
-            close_btn.setFont(QFont("Arial", 12))
+            close_btn.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
             close_btn.clicked.connect(self.close)
             button_layout.addWidget(close_btn)
             
             main_layout.addLayout(button_layout)
+
+        
 
         def open_complete_analysis(self):
             """Abre análise completa para CDs"""
@@ -1227,12 +1233,13 @@ class FlowVisualDialog(QDialog):
                     margin: 3px;
                 }
             """)
-            card.setFixedWidth(300)
-            card.setMinimumHeight(350)
+            card.setFixedWidth(250)  # Reduzido de 300 para 250
+            card.setMinimumHeight(280)  # Reduzido de 350 para 280
+            card.setMaximumHeight(400)
             
             layout = QVBoxLayout(card)
-            layout.setSpacing(6)
-            layout.setContentsMargins(12, 12, 12, 12)
+            layout.setSpacing(4)
+            layout.setContentsMargins(8,8,8,8)
             
             # Título com data
             date_str = day_data['date']
@@ -1251,7 +1258,7 @@ class FlowVisualDialog(QDialog):
             title.setAlignment(Qt.AlignCenter)
             title_font = QFont()
             title_font.setBold(True)
-            title_font.setPointSize(11)
+            title_font.setPointSize(9)
             title.setFont(title_font)
             layout.addWidget(title)
             
