@@ -14,7 +14,7 @@ import shutil
 class Version:
     """Classe para gerenciar versões da aplicação"""
     
-    CURRENT_VERSION = "0.0.4"
+    CURRENT_VERSION = "0.0.5"
     APP_NAME = "Sistema de Controle de Caixas"
     
     # **CORREÇÃO: URLs corretas do GitHub**
@@ -32,7 +32,7 @@ class Version:
         return {
             "name": Version.APP_NAME,
             "version": Version.CURRENT_VERSION,
-            "build_date": "2025-06-12 13:10:07",
+            "build_date": "2025-06-12 13:10:49",
             "description": "Sistema completo de controle de caixas com inventário inicial, fluxo visual para CDs e Lojas, e atualizações automáticas",
             "author": "Desenvolvedor Python",
             "license": "Proprietário",
