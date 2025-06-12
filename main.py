@@ -20,6 +20,7 @@ from flow_dialog import FlowDialog
 import datetime
 from version import Version
 from update_dialog import UpdateDialog
+from tools_dialog import ToolsDialog
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -45,19 +46,53 @@ class MainWindow(QMainWindow):
         self.update_all_views()
 
     def show_visual_flow_dialog(self):
-        """CORREÇÃO: Mostra o diálogo de fluxo visual para CDs e Lojas"""
+        """Mostra o diálogo de fluxo visual melhorado"""
         location_text = self.location_combo.currentText()
         if location_text and "Selecione" not in location_text:
             location_name = location_text.replace("🏢 ", "").replace("🏪 ", "")
             
-            # **CORREÇÃO PRINCIPAL: Remove restrição para CDs**
-            dialog = FlowVisualDialog(location_name, self.db, self)
-            dialog.exec_()
+            # **MELHORIA: Para CDs, usa FlowVisualDialog que tem botão de análise completa**
+            from flow_dialog import FlowVisualDialog, CDFlowAnalysisDialog
+            
+            if not location_name.startswith('LOJA'):  # É um CD
+                # Pergunta se quer fluxo visual ou análise completa
+                from PyQt5.QtWidgets import QMessageBox
+                
+                reply = QMessageBox.question(
+                    self, "Tipo de Análise",
+                    f"Qual tipo de análise deseja para {location_name}?\n\n"
+                    "• Fluxo Visual: Visualização dia a dia\n"
+                    "• Análise Completa: Relatório detalhado com totais",
+                    QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+                    QMessageBox.Yes
+                )
+                
+                # Customiza os botões
+                msg_box = QMessageBox()
+                msg_box.setWindowTitle("Tipo de Análise")
+                msg_box.setText(f"Qual análise deseja para {location_name}?")
+                msg_box.setInformativeText("Escolha o tipo de análise:")
+                
+                visual_button = msg_box.addButton("📊 Fluxo Visual", QMessageBox.YesRole)
+                complete_button = msg_box.addButton("📈 Análise Completa", QMessageBox.NoRole)
+                cancel_button = msg_box.addButton("❌ Cancelar", QMessageBox.RejectRole)
+                
+                msg_box.exec_()
+                
+                if msg_box.clickedButton() == complete_button:
+                    dialog = CDFlowAnalysisDialog(location_name, self.db, self)
+                    dialog.exec_()
+                elif msg_box.clickedButton() == visual_button:
+                        dialog = FlowVisualDialog(location_name, self.db, self)
+                        dialog.exec_()
+            else:
+                # Para lojas, usa FlowVisualDialog normal
+                dialog = FlowVisualDialog(location_name, self.db, self)
+                dialog.exec_()
 
     def create_menu(self):
         menu_bar = self.menuBar()
         
-        # **CORREÇÃO: Fontes maiores no menu**
         menu_font = QFont()
         menu_font.setPointSize(10)
         menu_bar.setFont(menu_font)
@@ -91,11 +126,11 @@ class MainWindow(QMainWindow):
         refresh_action.triggered.connect(self.update_all_views)
         view_menu.addAction(refresh_action)
 
-        # Menu Ferramentas
+        # **MUDANÇA: Menu Ferramentas com novo diálogo**
         tools_menu = menu_bar.addMenu("🔧 Ferramentas")
-        settings_action = QAction("⚙️ Configurações", self)
-        settings_action.triggered.connect(self.open_settings)
-        tools_menu.addAction(settings_action)
+        tools_action = QAction("⚙️ Abrir Ferramentas", self)
+        tools_action.triggered.connect(self.open_tools_dialog)
+        tools_menu.addAction(tools_action)
 
         # Menu de Atualizações
         update_menu = menu_bar.addMenu("🔄 Atualizações")
@@ -109,6 +144,87 @@ class MainWindow(QMainWindow):
         about_action = QAction("ℹ️ Sobre", self)
         about_action.triggered.connect(self.show_about)
         update_menu.addAction(about_action)
+
+
+    def open_tools_dialog(self):
+        """Abre o novo diálogo de ferramentas"""
+        dialog = ToolsDialog(self.db, self)
+        dialog.database_cleared.connect(self.update_all_views)
+        dialog.appearance_changed.connect(self.apply_appearance_settings)
+        dialog.exec_()
+
+    def apply_appearance_settings(self, settings):
+        """Aplica configurações de aparência em tempo real"""
+        try:
+            # Aplica fonte global
+            font = QFont(settings['font_family'], settings['font_size'])
+            self.setFont(font)
+            QApplication.instance().setFont(font)
+            
+            # Aplica cores (stylesheet global)
+            if settings['theme'] == 'Escuro':
+                dark_style = f"""
+                QMainWindow {{
+                    background-color: #2b2b2b;
+                    color: #ffffff;
+                }}
+                QTabWidget::pane {{
+                    border: 1px solid {settings['primary_color']};
+                    background-color: #404040;
+                }}
+                QTabBar::tab {{
+                    background: #505050;
+                    color: #ffffff;
+                    padding: 10px 20px;
+                }}
+                QTabBar::tab:selected {{
+                    background: {settings['primary_color']};
+                }}
+                QGroupBox {{
+                    color: #ffffff;
+                    border: 2px solid {settings['primary_color']};
+                }}
+                QLabel {{
+                    color: #ffffff;
+                }}
+                """
+                self.setStyleSheet(dark_style)
+            else:
+                # Tema claro
+                light_style = f"""
+                QMainWindow {{
+                    background-color: {settings['background_color']};
+                    color: {settings['text_color']};
+                }}
+                QTabWidget::pane {{
+                    border: 1px solid #c0c0c0;
+                }}
+                QTabBar::tab {{
+                    background: #f0f0f0;
+                    padding: 10px 20px;
+                }}
+                QTabBar::tab:selected {{
+                    background: {settings['primary_color']};
+                    color: white;
+                }}
+                """
+                self.setStyleSheet(light_style)
+            
+            # Força atualização da interface
+            self.update()
+            self.repaint()
+            
+            print(f"✅ Configurações aplicadas: Fonte {settings['font_family']} {settings['font_size']}pt, Tema {settings['theme']}")
+            
+        except Exception as e:
+            print(f"❌ Erro ao aplicar configurações: {e}")
+
+    def open_tools_dialog(self):
+        """Abre o novo diálogo de ferramentas"""
+        dialog = ToolsDialog(self.db, self)
+        dialog.database_cleared.connect(self.update_all_views)
+        dialog.appearance_changed.connect(self.apply_appearance_settings)
+        dialog.exec_()
 
     def check_updates_manual(self):
         """Abre diálogo de atualizações manualmente"""
@@ -866,10 +982,8 @@ class MainWindow(QMainWindow):
                 QMessageBox.critical(self, "Erro", f"Erro ao exportar:\n{e}")
 
     def open_settings(self):
-        """Abre diálogo de configurações"""
-        dialog = SettingsDialog(self.db, self)
-        dialog.database_cleared.connect(self.update_all_views)
-        dialog.exec_()
+        """Abre diálogo de ferramentas (compatibilidade)"""
+        self.open_tools_dialog()
 
     def closeEvent(self, event):
         """Evento de fechamento da aplicação"""
