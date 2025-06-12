@@ -1,9 +1,9 @@
-# flow_dialog.py - VERSÃO MELHORADA COM SUPORTE COMPLETO PARA CDs
+# flow_dialog.py - VERSÃO CORRIGIDA COM CARDS RESPONSIVOS E MÉTODO FALTANTE
 import sys
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea, 
                             QWidget, QFrame, QGridLayout, QPushButton, QComboBox,
                             QTableWidget, QTableWidgetItem, QHeaderView, QTabWidget,
-                            QGroupBox, QSplitter)
+                            QGroupBox, QSplitter, QSizePolicy)
 from PyQt5.QtGui import QFont, QPainter, QPen, QColor
 from PyQt5.QtCore import Qt, QRect
 from datetime import datetime, timedelta
@@ -31,7 +31,7 @@ class FlowDialog(QDialog, ResponsiveDialog):
         # Título responsivo
         title = QLabel(f"📊 Fluxo de Movimentos - {self.location_name}")
         title_font = QFont()
-        title_font.setPointSize(14)  # **CORREÇÃO: Fonte menor**
+        title_font.setPointSize(14)
         title_font.setBold(True)
         title.setFont(title_font)
         layout.addWidget(title)
@@ -46,12 +46,12 @@ class FlowDialog(QDialog, ResponsiveDialog):
         
         # **CORREÇÃO: Fonte ajustada para responsividade**
         table_font = QFont()
-        table_font.setPointSize(10)  # Reduzido de 12 para 10
+        table_font.setPointSize(10)
         self.table.setFont(table_font)
         
         header = self.table.horizontalHeader()
         header_font = QFont()
-        header_font.setPointSize(10)  # Reduzido de 12 para 10
+        header_font.setPointSize(10)
         header_font.setBold(True)
         header.setFont(header_font)
         
@@ -72,7 +72,7 @@ class FlowDialog(QDialog, ResponsiveDialog):
         button_layout.addStretch()
         
         close_btn = QPushButton("❌ Fechar")
-        close_btn.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
+        close_btn.setFont(QFont("Arial", 10))
         close_btn.clicked.connect(self.close)
         button_layout.addWidget(close_btn)
         
@@ -121,7 +121,7 @@ class FlowDialog(QDialog, ResponsiveDialog):
             self.table.setItem(row, 5, QTableWidgetItem(str(data.get('quantidade', ''))))
 
 class CDFlowAnalysisDialog(QDialog, ResponsiveDialog):
-    """Diálogo específico para análise completa de fluxo de CDs - VERSÃO RESPONSIVA"""
+    """Diálogo específico para análise completa de fluxo de CDs - VERSÃO CORRIGIDA"""
     
     def __init__(self, cd_name, db_instance, parent=None):
         super().__init__(parent)
@@ -144,7 +144,7 @@ class CDFlowAnalysisDialog(QDialog, ResponsiveDialog):
         
         title = QLabel(f"📊 Análise Completa de Fluxo - {self.cd_name}")
         title_font = QFont()
-        title_font.setPointSize(16)  # **CORREÇÃO: Fonte ajustada**
+        title_font.setPointSize(16)
         title_font.setBold(True)
         title.setFont(title_font)
         header_layout.addWidget(title)
@@ -153,7 +153,7 @@ class CDFlowAnalysisDialog(QDialog, ResponsiveDialog):
         
         # Período de análise
         period_label = QLabel("📅 Período: Todos os registros")
-        period_label.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
+        period_label.setFont(QFont("Arial", 10))
         period_label.setStyleSheet("color: #666;")
         header_layout.addWidget(period_label)
         
@@ -161,9 +161,9 @@ class CDFlowAnalysisDialog(QDialog, ResponsiveDialog):
         
         # Widget de abas para diferentes análises
         self.tabs = QTabWidget()
-        self.tabs.setFont(QFont("Arial", 9))  # **CORREÇÃO: Fonte das abas menor**
+        self.tabs.setFont(QFont("Arial", 9))
         
-        # Aba 1: Resumo Executivo
+        # **CORREÇÃO CRÍTICA: Criar aba de resumo ANTES de chamar método**
         self.create_summary_tab()
         
         # Aba 2: Saídas para Lojas (Remessas)
@@ -184,22 +184,80 @@ class CDFlowAnalysisDialog(QDialog, ResponsiveDialog):
         button_layout = QHBoxLayout()
         
         export_btn = QPushButton("💾 Exportar Análise Completa")
-        export_btn.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
-        export_btn.setStyleSheet("background-color: #28a745; color: white; padding: 6px 12px;")  # **CORREÇÃO: Padding menor**
+        export_btn.setFont(QFont("Arial", 10))
+        export_btn.setStyleSheet("background-color: #28a745; color: white; padding: 6px 12px;")
         export_btn.clicked.connect(self.export_analysis)
         button_layout.addWidget(export_btn)
         
         button_layout.addStretch()
         
         close_btn = QPushButton("❌ Fechar")
-        close_btn.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
+        close_btn.setFont(QFont("Arial", 10))
         close_btn.clicked.connect(self.close)
         button_layout.addWidget(close_btn)
         
         main_layout.addLayout(button_layout)
 
+    def create_summary_tab(self):
+        """**MÉTODO FALTANTE CORRIGIDO**: Cria aba de resumo executivo"""
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        
+        # Grid de cards de resumo
+        cards_layout = QGridLayout()
+        
+        # **CORREÇÃO: Cards de resumo responsivos**
+        self.outbound_card = self.create_summary_card(
+            "📤 Saídas Totais", "0", "Remessas para lojas", "#dc3545"
+        )
+        cards_layout.addWidget(self.outbound_card, 0, 0)
+        
+        self.inbound_card = self.create_summary_card(
+            "📥 Retornos Totais", "0", "Regressos das lojas", "#28a745"
+        )
+        cards_layout.addWidget(self.inbound_card, 0, 1)
+        
+        self.transfers_card = self.create_summary_card(
+            "🔄 Transferências", "0", "Entre CDs", "#007bff"
+        )
+        cards_layout.addWidget(self.transfers_card, 1, 0)
+        
+        self.balance_card = self.create_summary_card(
+            "⚖️ Saldo Líquido", "0", "Entradas - Saídas", "#6c757d"
+        )
+        cards_layout.addWidget(self.balance_card, 1, 1)
+        
+        layout.addLayout(cards_layout)
+        
+        # Tabela de resumo por ativo
+        assets_group = QGroupBox("📦 Resumo por Ativo")
+        assets_layout = QVBoxLayout()
+        
+        self.assets_table = QTableWidget()
+        self.assets_table.setColumnCount(5)
+        self.assets_table.setHorizontalHeaderLabels([
+            '📦 Ativo', '📤 Saídas', '📥 Entradas', '🔄 Transferências', '⚖️ Saldo'
+        ])
+        
+        # Configurar tabela responsiva
+        header = self.assets_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(4, QHeaderView.Stretch)
+        
+        self.assets_table.setAlternatingRowColors(True)
+        self.assets_table.setSortingEnabled(True)
+        
+        assets_layout.addWidget(self.assets_table)
+        assets_group.setLayout(assets_layout)
+        layout.addWidget(assets_group)
+        
+        self.tabs.addTab(tab, "📊 Resumo")
+
     def create_summary_card(self, title, value, subtitle, color):
-        """Cria um card de resumo RESPONSIVO"""
+        """Cria um card de resumo RESPONSIVO E CORRIGIDO"""
         card = QFrame()
         card.setFrameStyle(QFrame.Box)
         card.setLineWidth(2)
@@ -211,19 +269,21 @@ class CDFlowAnalysisDialog(QDialog, ResponsiveDialog):
                 margin: 3px;
             }}
         """)
-        # **CORREÇÃO: Altura mínima menor e responsiva**
-        card.setMinimumHeight(80)  # Reduzido de 120 para 80
-        card.setMaximumHeight(120)
+        
+        # **CORREÇÃO CRÍTICA: Define política de tamanho responsiva**
+        card.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
+        card.setMinimumHeight(100)  # Altura mínima garantida
+        card.setMaximumHeight(150)  # Altura máxima para não ficar muito grande
         
         layout = QVBoxLayout(card)
-        layout.setSpacing(3)  # **CORREÇÃO: Espaçamento menor**
-        layout.setContentsMargins(10, 8, 10, 8)  # **CORREÇÃO: Margens menores**
+        layout.setSpacing(4)
+        layout.setContentsMargins(12, 8, 12, 8)
         
         # Título
         title_label = QLabel(title)
         title_label.setAlignment(Qt.AlignCenter)
         title_font = QFont()
-        title_font.setPointSize(9)  # **CORREÇÃO: Fonte menor**
+        title_font.setPointSize(9)
         title_font.setBold(True)
         title_label.setFont(title_font)
         title_label.setStyleSheet(f"color: {color};")
@@ -233,7 +293,7 @@ class CDFlowAnalysisDialog(QDialog, ResponsiveDialog):
         value_label = QLabel(value)
         value_label.setAlignment(Qt.AlignCenter)
         value_font = QFont()
-        value_font.setPointSize(14)  # **CORREÇÃO: Fonte menor (era 18)
+        value_font.setPointSize(16)  # Tamanho adequado
         value_font.setBold(True)
         value_label.setFont(value_font)
         value_label.setStyleSheet(f"color: {color};")
@@ -242,9 +302,12 @@ class CDFlowAnalysisDialog(QDialog, ResponsiveDialog):
         # Subtítulo
         subtitle_label = QLabel(subtitle)
         subtitle_label.setAlignment(Qt.AlignCenter)
-        subtitle_label.setFont(QFont("Arial", 8))  # **CORREÇÃO: Fonte menor**
+        subtitle_label.setFont(QFont("Arial", 8))
         subtitle_label.setStyleSheet("color: #666;")
         layout.addWidget(subtitle_label)
+        
+        # **CORREÇÃO: Permite redimensionamento dinâmico**
+        layout.addStretch(0)  # Remove stretch para garantir layout compacto
         
         # Armazenar referência ao label de valor para atualização
         card.value_label = value_label
@@ -435,57 +498,6 @@ class CDFlowAnalysisDialog(QDialog, ResponsiveDialog):
         layout.addWidget(temporal_group)
         
         self.tabs.addTab(tab, "📈 Temporal")
-
-    def create_summary_card(self, title, value, subtitle, color):
-        """Cria um card de resumo"""
-        card = QFrame()
-        card.setFrameStyle(QFrame.Box)
-        card.setLineWidth(2)
-        card.setStyleSheet(f"""
-            QFrame {{
-                background-color: white;
-                border: 2px solid {color};
-                border-radius: 8px;
-                margin: 5px;
-            }}
-        """)
-        card.setMinimumHeight(120)
-        
-        layout = QVBoxLayout(card)
-        layout.setSpacing(5)
-        layout.setContentsMargins(15, 10, 15, 10)
-        
-        # Título
-        title_label = QLabel(title)
-        title_label.setAlignment(Qt.AlignCenter)
-        title_font = QFont()
-        title_font.setPointSize(10)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
-        title_label.setStyleSheet(f"color: {color};")
-        layout.addWidget(title_label)
-        
-        # Valor principal
-        value_label = QLabel(value)
-        value_label.setAlignment(Qt.AlignCenter)
-        value_font = QFont()
-        value_font.setPointSize(18)
-        value_font.setBold(True)
-        value_label.setFont(value_font)
-        value_label.setStyleSheet(f"color: {color};")
-        layout.addWidget(value_label)
-        
-        # Subtítulo
-        subtitle_label = QLabel(subtitle)
-        subtitle_label.setAlignment(Qt.AlignCenter)
-        subtitle_label.setFont(QFont("Arial", 9))
-        subtitle_label.setStyleSheet("color: #666;")
-        layout.addWidget(subtitle_label)
-        
-        # Armazenar referência ao label de valor para atualização
-        card.value_label = value_label
-        
-        return card
 
     def load_cd_analysis(self):
         """Carrega análise completa do CD"""
@@ -895,681 +907,743 @@ class CDFlowAnalysisDialog(QDialog, ResponsiveDialog):
             QMessageBox.critical(self, "❌ Erro", f"Erro ao exportar análise:\n{e}")
 
 class FlowVisualDialog(QDialog, ResponsiveDialog):
-        """Diálogo de fluxo visual melhorado - VERSÃO RESPONSIVA"""
-        def __init__(self, location_name, db_instance, parent=None):
-            super().__init__(parent)
-            self.location_name = location_name
-            self.db = db_instance
-            self.setWindowTitle(f"Fluxo Visual - {location_name}")
-            
-            # **CORREÇÃO: Usa sistema responsivo**
-            self.make_responsive("large", center=True)
-            
-            # Detecta se é CD e oferece análise completa
-            self.is_cd = not location_name.startswith('LOJA')
-            
-            if self.is_cd:
-                self.daily_data = self.get_cd_daily_evolution(location_name)
-            else:
-                self.daily_data = self.db.get_daily_stock_evolution(location_name)
-            
-            self.asset_filter = "Todos"
-            
-            self.init_ui()
-            self.update_flow_display()
+    """Diálogo de fluxo visual melhorado - VERSÃO CORRIGIDA PARA CARDS RESPONSIVOS"""
+    def __init__(self, location_name, db_instance, parent=None):
+        super().__init__(parent)
+        self.location_name = location_name
+        self.db = db_instance
+        self.setWindowTitle(f"Fluxo Visual - {location_name}")
+        
+        # **CORREÇÃO: Usa sistema responsivo**
+        self.make_responsive("large", center=True)
+        
+        # Detecta se é CD e oferece análise completa
+        self.is_cd = not location_name.startswith('LOJA')
+        
+        if self.is_cd:
+            self.daily_data = self.get_cd_daily_evolution(location_name)
+        else:
+            self.daily_data = self.db.get_daily_stock_evolution(location_name)
+        
+        self.asset_filter = "Todos"
+        
+        self.init_ui()
+        self.update_flow_display()
 
-        def init_ui(self):
-            """Interface melhorada e RESPONSIVA"""
-            main_layout = QVBoxLayout(self)
+    def init_ui(self):
+        """Interface melhorada e RESPONSIVA"""
+        main_layout = QVBoxLayout(self)
+        
+        # **CORREÇÃO: Fonte base menor**
+        base_font = QFont()
+        base_font.setPointSize(10)
+        self.setFont(base_font)
+        
+        # Cabeçalho melhorado
+        header_layout = QHBoxLayout()
+        
+        title_label = QLabel(f"Evolução do Estoque - {self.location_name}")
+        title_font = QFont()
+        title_font.setPointSize(14)
+        title_font.setBold(True)
+        title_label.setFont(title_font)
+        header_layout.addWidget(title_label)
+        
+        header_layout.addStretch()
+        
+        # Botão de análise completa para CDs
+        if self.is_cd:
+            self.analysis_button = QPushButton("📊 Análise Completa")
+            self.analysis_button.setFont(QFont("Arial", 10))
+            self.analysis_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #007bff;
+                    color: white;
+                    padding: 6px 12px;
+                    border: none;
+                    border-radius: 4px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #0056b3;
+                }
+            """)
+            self.analysis_button.clicked.connect(self.open_complete_analysis)
+            header_layout.addWidget(self.analysis_button)
+        
+        # Filtro por ativo
+        filter_label = QLabel("Filtrar por ativo:")
+        filter_label.setFont(QFont("Arial", 10))
+        header_layout.addWidget(filter_label)
+        
+        self.asset_combo = QComboBox()
+        self.asset_combo.addItem("Todos")
+        self.asset_combo.setFont(QFont("Arial", 10))
+        
+        # Detecta ativos
+        if self.daily_data:
+            assets_found = set()
             
-            # **CORREÇÃO: Fonte base menor**
-            base_font = QFont()
-            base_font.setPointSize(10)  # Reduzido de 12 para 10
-            self.setFont(base_font)
+            if not self.is_cd:
+                initial_inventory = self.get_initial_inventory()
+                assets_found.update(initial_inventory.keys())
             
-            # Cabeçalho melhorado
-            header_layout = QHBoxLayout()
+            for day_data in self.daily_data:
+                movements = day_data.get('movements', [])
+                if isinstance(movements, list):
+                    for mov in movements:
+                        if hasattr(mov, 'keys'):
+                            rti = mov['rti'] if mov['rti'] else None
+                        else:
+                            rti = mov.get('rti')
+                        
+                        if rti:
+                            normalized_rti = str(rti).strip().upper().replace(' ', '')
+                            assets_found.add(normalized_rti)
             
-            title_label = QLabel(f"Evolução do Estoque - {self.location_name}")
-            title_font = QFont()
-            title_font.setPointSize(14)  # **CORREÇÃO: Fonte menor (era 18)
-            title_font.setBold(True)
-            title_label.setFont(title_font)
-            header_layout.addWidget(title_label)
+            for asset in sorted(assets_found):
+                self.asset_combo.addItem(asset)
+        
+        self.asset_combo.currentTextChanged.connect(self.on_filter_changed)
+        header_layout.addWidget(self.asset_combo)
+        
+        main_layout.addLayout(header_layout)
+        
+        # **CORREÇÃO CRÍTICA: Área de scroll com configuração responsiva melhorada**
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        
+        # **CORREÇÃO: Widget de flow com configurações responsivas**
+        self.flow_widget = QWidget()
+        self.flow_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
+        
+        self.flow_layout = QHBoxLayout(self.flow_widget)
+        self.flow_layout.setSpacing(10)  # **CORREÇÃO: Espaçamento reduzido**
+        self.flow_layout.setContentsMargins(10, 10, 10, 10)
+        
+        self.scroll_area.setWidget(self.flow_widget)
+        main_layout.addWidget(self.scroll_area)
+        
+        # Botões de ação responsivos
+        button_layout = QHBoxLayout()
+        
+        export_btn = QPushButton("💾 Exportar Fluxo")
+        export_btn.setFont(QFont("Arial", 10))
+        export_btn.clicked.connect(self.export_flow)
+        button_layout.addWidget(export_btn)
+        
+        button_layout.addStretch()
+        
+        close_btn = QPushButton("❌ Fechar")
+        close_btn.setFont(QFont("Arial", 10))
+        close_btn.clicked.connect(self.close)
+        button_layout.addWidget(close_btn)
+        
+        main_layout.addLayout(button_layout)
+
+    def open_complete_analysis(self):
+        """Abre análise completa para CDs"""
+        analysis_dialog = CDFlowAnalysisDialog(self.location_name, self.db, self)
+        analysis_dialog.exec_()
+
+    def get_cd_daily_evolution(self, cd_name):
+        """Calcula evolução diária para CDs"""
+        print(f"=== EVOLUÇÃO CD PARA {cd_name} ===")
+        
+        movements_query = """
+        SELECT data_movimento, tipo_movimento, rti, quantidade, local_origem, local_destino
+        FROM movimentos 
+        WHERE (local_origem = ? OR local_destino = ?)
+        ORDER BY data_movimento ASC, id ASC
+        """
+        movements = self.db._execute_query(movements_query, (cd_name, cd_name))
+
+        def normalize_asset_name(asset_name):
+            if not asset_name:
+                return 'N/A'
+            normalized = str(asset_name).strip().upper()
+            normalized = normalized.replace(' ', '')
+            return normalized
+
+        from collections import defaultdict
+        movements_by_date = defaultdict(list)
+        for mov in movements:
+            movements_by_date[mov['data_movimento']].append(mov)
+
+        daily_evolution = []
+        current_stock = defaultdict(int)  # Começa com zero para CDs
+        
+        # Processa cada data em ordem
+        for date in sorted(movements_by_date.keys()):
+            day_movements = movements_by_date[date]
             
-            header_layout.addStretch()
+            print(f"\n--- Processando data CD: {date} ---")
+            print(f"Estoque CD no início do dia: {dict(current_stock)}")
             
-            # Botão de análise completa para CDs
-            if self.is_cd:
-                self.analysis_button = QPushButton("📊 Análise Completa")
-                self.analysis_button.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
-                self.analysis_button.setStyleSheet("""
-                    QPushButton {
-                        background-color: #007bff;
-                        color: white;
-                        padding: 6px 12px;
-                        border: none;
-                        border-radius: 4px;
-                        font-weight: bold;
-                    }
-                    QPushButton:hover {
-                        background-color: #0056b3;
-                    }
-                """)
-                self.analysis_button.clicked.connect(self.open_complete_analysis)
-                header_layout.addWidget(self.analysis_button)
-            
-            # Filtro por ativo
-            filter_label = QLabel("Filtrar por ativo:")
-            filter_label.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
-            header_layout.addWidget(filter_label)
-            
-            self.asset_combo = QComboBox()
-            self.asset_combo.addItem("Todos")
-            self.asset_combo.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
-            
-            # Detecta ativos
+            # Aplica todos os movimentos do dia
+            for mov in day_movements:
+                raw_rti = mov['rti'] if mov['rti'] else 'N/A'
+                rti = normalize_asset_name(raw_rti)
+                qtde = mov['quantidade']
+                tipo = mov['tipo_movimento']
+                origem = mov['local_origem']
+                destino = mov['local_destino']
+                
+                print(f"Movimento CD: {tipo} {qtde} '{raw_rti}' -> '{rti}' (de {origem} para {destino})")
+                
+                old_qty = current_stock[rti]
+                
+                # Lógica para CDs
+                if destino == cd_name:
+                    if tipo in ('Regresso', 'Entrega', 'Transferencia', 'Retorno'):
+                        current_stock[rti] += qtde
+                        print(f"  ✅ Entrada CD: {rti} {old_qty} + {qtde} = {current_stock[rti]}")
+                        
+                elif origem == cd_name:
+                    if tipo in ('Remessa', 'Transferencia', 'Devolução de Entrega'):
+                        current_stock[rti] -= qtde
+                        print(f"  ❌ Saída CD: {rti} {old_qty} - {qtde} = {current_stock[rti]}")
+
+            print(f"Estoque CD final do dia {date}: {dict(current_stock)}")
+
+            daily_evolution.append({
+                'date': date,
+                'stock': current_stock.copy(),
+                'movements': day_movements.copy()
+            })
+
+        return daily_evolution
+
+    def on_filter_changed(self, asset_name):
+        self.asset_filter = asset_name
+        self.update_flow_display()
+
+    def update_flow_display(self):
+        # Limpa layout atual
+        for i in reversed(range(self.flow_layout.count())):
+            child = self.flow_layout.itemAt(i).widget()
+            if child:
+                child.setParent(None)
+        
+        if not self.daily_data:
+            no_data_label = QLabel(f"❌ Nenhum dado encontrado para {self.location_name}.\n\n📦 {'Carregue o inventário inicial nas configurações.' if not self.is_cd else 'Verifique se há movimentos para este CD.'}")
+            no_data_label.setAlignment(Qt.AlignCenter)
+            no_data_label.setFont(QFont("Arial", 14))
+            no_data_label.setStyleSheet("""
+                QLabel {
+                    color: #666; 
+                    font-size: 16px; 
+                    padding: 50px;
+                    background-color: #f8f9fa;
+                    border: 2px dashed #dee2e6;
+                    border-radius: 10px;
+                }
+            """)
+            self.flow_layout.addWidget(no_data_label)
+            return
+        
+        # Para lojas, adiciona inventário inicial
+        if not self.is_cd:
+            self.add_inventory_card()
             if self.daily_data:
-                assets_found = set()
+                self.add_arrow()
+        
+        # Adiciona cards para cada dia
+        for i, day_data in enumerate(self.daily_data):
+            self.add_day_card(day_data, i)
+            
+            if i < len(self.daily_data) - 1:
+                self.add_arrow()
+        
+        self.flow_layout.addStretch()
+
+    def add_inventory_card(self):
+        """Adiciona card do inventário inicial (só para lojas)"""
+        card = QFrame()
+        card.setFrameStyle(QFrame.Box)
+        card.setLineWidth(2)
+        card.setStyleSheet("""
+            QFrame {
+                background-color: #e8f5e8;
+                border: 2px solid #5cb85c;
+                border-radius: 8px;
+                margin: 3px;
+            }
+        """)
+        
+        # **CORREÇÃO CRÍTICA: Define tamanho fixo e política de tamanho**
+        card.setFixedWidth(280)
+        card.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.MinimumExpanding)
+        card.setMinimumHeight(250)  # Altura mínima garantida
+        card.setMaximumHeight(400)  # Altura máxima para evitar cards gigantes
+        
+        layout = QVBoxLayout(card)
+        layout.setSpacing(8)
+        layout.setContentsMargins(12, 12, 12, 12)
+        
+        # Título
+        title = QLabel("📦 INVENTÁRIO INICIAL")
+        title.setAlignment(Qt.AlignCenter)
+        title_font = QFont()
+        title_font.setBold(True)
+        title_font.setPointSize(12)
+        title.setFont(title_font)
+        layout.addWidget(title)
+        
+        # Data
+        date_label = QLabel("📅 08/06/2025")
+        date_label.setAlignment(Qt.AlignCenter)
+        date_label.setFont(QFont("Arial", 10))
+        date_label.setStyleSheet("color: #666;")
+        layout.addWidget(date_label)
+        
+        # Separador
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setStyleSheet("background-color: #5cb85c;")
+        layout.addWidget(separator)
+        
+        # Estoque inicial
+        stock_title = QLabel("📊 Estoque Base:")
+        stock_title.setFont(QFont("Arial", 10, QFont.Bold))
+        stock_title.setStyleSheet("color: #2d5a2d;")
+        layout.addWidget(stock_title)
+        
+        inventory_data = self.get_initial_inventory()
+        if inventory_data:
+            for asset, quantity in inventory_data.items():
+                if self.asset_filter == "Todos" or self.asset_filter == asset:
+                    asset_label = QLabel(f"• {asset}: {quantity:,}".replace(",", "."))
+                    asset_label.setFont(QFont("Arial", 11, QFont.Bold))
+                    asset_label.setStyleSheet("padding: 3px;")
+                    layout.addWidget(asset_label)
+        else:
+            no_stock_label = QLabel("⚠️ Sem dados")
+            no_stock_label.setFont(QFont("Arial", 10))
+            no_stock_label.setStyleSheet("color: #999; font-style: italic;")
+            layout.addWidget(no_stock_label)
+        
+        layout.addStretch()
+        self.flow_layout.addWidget(card)
+
+    def add_day_card(self, day_data, day_index):
+        """**CORREÇÃO CRÍTICA**: Adiciona card de um dia específico com altura corrigida"""
+        
+        def normalize_asset_name(asset_name):
+            if not asset_name:
+                return 'N/A'
+            normalized = str(asset_name).strip().upper()
+            normalized = normalized.replace(' ', '')
+            return normalized
+        
+        card = QFrame()
+        card.setFrameStyle(QFrame.Box)
+        card.setLineWidth(2)
+        card.setStyleSheet("""
+            QFrame {
+                background-color: #f8f9fa;
+                border: 2px solid #007bff;
+                border-radius: 8px;
+                margin: 3px;
+            }
+        """)
+        
+        # **CORREÇÃO CRÍTICA: Tamanho fixo responsivo**
+        card.setFixedWidth(280)  # Largura fixa para consistência
+        card.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.MinimumExpanding)
+        card.setMinimumHeight(300)  # **CORREÇÃO: Altura mínima suficiente**
+        card.setMaximumHeight(500)  # **CORREÇÃO: Altura máxima controlada**
+        
+        layout = QVBoxLayout(card)
+        layout.setSpacing(6)  # **CORREÇÃO: Espaçamento adequado**
+        layout.setContentsMargins(10, 10, 10, 10)
+        # Título com data
+        date_str = day_data['date']
+        if isinstance(date_str, str):
+            try:
+                date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+                formatted_date = date_obj.strftime('%d/%m/%Y')
+                day_name = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][date_obj.weekday()]
+                title_text = f"📅 {formatted_date} ({day_name})"
+            except:
+                title_text = f"📅 {date_str}"
+        else:
+            title_text = f"📅 {date_str}"
+            
+        title = QLabel(title_text)
+        title.setAlignment(Qt.AlignCenter)
+        title_font = QFont()
+        title_font.setBold(True)
+        title_font.setPointSize(10)  # **CORREÇÃO: Fonte adequada**
+        title.setFont(title_font)
+        layout.addWidget(title)
+        
+        # **CORREÇÃO: Calcula saldo inicial corretamente**
+        if not self.is_cd and day_index == 0:
+            previous_stock = self.get_initial_inventory()
+        elif not self.is_cd and day_index > 0:
+            previous_day_data = self.daily_data[day_index - 1]
+            previous_stock = previous_day_data['stock']
+        else:
+            if day_index == 0:
+                previous_stock = {}
+            else:
+                previous_day_data = self.daily_data[day_index - 1]
+                previous_stock = previous_day_data['stock']
+        
+        # **CORREÇÃO: Seção de saldo inicial com altura controlada**
+        initial_frame = QFrame()
+        initial_frame.setStyleSheet("background-color: #e3f2fd; border-radius: 4px; margin: 2px;")
+        initial_frame.setMaximumHeight(80)  # **CORREÇÃO: Altura máxima**
+        initial_layout = QVBoxLayout(initial_frame)
+        initial_layout.setContentsMargins(8, 5, 8, 5)
+        initial_layout.setSpacing(2)  # **CORREÇÃO: Espaçamento menor**
+        
+        initial_title = QLabel("📊 Saldo Inicial:")
+        initial_title.setFont(QFont("Arial", 9, QFont.Bold))
+        initial_title.setStyleSheet("color: #1565c0;")
+        initial_layout.addWidget(initial_title)
+        
+        # **CORREÇÃO: Limita número de itens mostrados no saldo inicial**
+        shown_items = 0
+        max_items = 2  # Máximo 2 itens para economizar espaço
+        
+        if previous_stock:
+            for asset, quantity in list(previous_stock.items())[:max_items]:
+                if self.asset_filter == "Todos" or self.asset_filter == asset:
+                    initial_label = QLabel(f"• {asset}: {quantity:,}".replace(",", "."))
+                    initial_label.setFont(QFont("Arial", 8))  # **CORREÇÃO: Fonte menor**
+                    initial_label.setStyleSheet("padding: 1px;")
+                    initial_layout.addWidget(initial_label)
+                    shown_items += 1
+            
+            # Se há mais itens, mostra indicador
+            if len(previous_stock) > max_items:
+                more_label = QLabel(f"... e mais {len(previous_stock) - max_items} itens")
+                more_label.setFont(QFont("Arial", 8))
+                more_label.setStyleSheet("color: #666; font-style: italic; padding: 1px;")
+                initial_layout.addWidget(more_label)
+        else:
+            zero_label = QLabel("• Saldo: 0")
+            zero_label.setFont(QFont("Arial", 8))
+            zero_label.setStyleSheet("padding: 1px; color: #666;")
+            initial_layout.addWidget(zero_label)
+        
+        layout.addWidget(initial_frame)
+        
+        # **CORREÇÃO: Seção de movimentos com altura controlada**
+        movements = day_data.get('movements', [])
+        if movements:
+            movements_frame = QFrame()
+            movements_frame.setStyleSheet("background-color: #fff3cd; border-radius: 4px; margin: 2px;")
+            movements_frame.setMaximumHeight(100)  # **CORREÇÃO: Altura máxima**
+            movements_layout = QVBoxLayout(movements_frame)
+            movements_layout.setContentsMargins(8, 5, 8, 5)
+            movements_layout.setSpacing(2)
+            
+            movements_title = QLabel("🔄 Movimentos:")
+            movements_title.setFont(QFont("Arial", 9, QFont.Bold))
+            movements_title.setStyleSheet("color: #856404;")
+            movements_layout.addWidget(movements_title)
+            
+            # **CORREÇÃO: Agrupa movimentos por ativo para economizar espaço**
+            movements_by_asset = defaultdict(list)
+            for mov in movements:
+                if hasattr(mov, 'keys'):
+                    raw_rti = mov['rti'] if mov['rti'] else 'N/A'
+                    rti = normalize_asset_name(raw_rti)
+                    tipo = mov['tipo_movimento']
+                    qtde = mov['quantidade']
+                    origem = mov['local_origem']
+                    destino = mov['local_destino']
+                else:
+                    raw_rti = mov.get('rti', 'N/A') or 'N/A'
+                    rti = normalize_asset_name(raw_rti)
+                    tipo = mov.get('tipo_movimento', '')
+                    qtde = mov.get('quantidade', 0)
+                    origem = mov.get('local_origem', '')
+                    destino = mov.get('local_destino', '')
+                
+                if self.asset_filter == "Todos" or normalize_asset_name(self.asset_filter) == rti:
+                    movements_by_asset[rti].append({
+                        'tipo': tipo, 'qtde': qtde, 'origem': origem, 'destino': destino
+                    })
+            
+            # **CORREÇÃO: Mostra movimentos agrupados (máximo 3 linhas)**
+            shown_movements = 0
+            max_movements = 3
+            
+            for rti, asset_movements in list(movements_by_asset.items())[:max_movements]:
+                total_qtde = sum(m['qtde'] for m in asset_movements)
+                
+                # Determina direção do movimento
+                if self.is_cd:
+                    entrada_count = sum(1 for m in asset_movements 
+                                     if m['destino'] == self.location_name)
+                    if entrada_count > len(asset_movements) / 2:
+                        color = "#28a745"
+                        icon = "📥"
+                        signal = "+"
+                    else:
+                        color = "#dc3545"
+                        icon = "📤"
+                        signal = "-"
+                else:
+                    remessa_count = sum(1 for m in asset_movements if m['tipo'] == 'Remessa')
+                    if remessa_count > len(asset_movements) / 2:
+                        color = "#28a745"
+                        icon = "📥"
+                        signal = "+"
+                    else:
+                        color = "#dc3545"
+                        icon = "📤"
+                        signal = "-"
+                
+                mov_label = QLabel(f"{icon} {signal}{total_qtde:,} {rti}".replace(",", "."))
+                mov_label.setFont(QFont("Arial", 8, QFont.Bold))  # **CORREÇÃO: Fonte menor**
+                mov_label.setStyleSheet(f"color: {color}; padding: 1px;")
+                movements_layout.addWidget(mov_label)
+                shown_movements += 1
+            
+            # Se há mais movimentos, mostra indicador
+            if len(movements_by_asset) > max_movements:
+                more_mov_label = QLabel(f"... e mais {len(movements_by_asset) - max_movements} ativos")
+                more_mov_label.setFont(QFont("Arial", 8))
+                more_mov_label.setStyleSheet("color: #666; font-style: italic; padding: 1px;")
+                movements_layout.addWidget(more_mov_label)
+            
+            layout.addWidget(movements_frame)
+        else:
+            # **CORREÇÃO: Frame de "sem movimentos" mais compacto**
+            no_mov_frame = QFrame()
+            no_mov_frame.setStyleSheet("background-color: #f8f9fa; border-radius: 4px; margin: 2px;")
+            no_mov_frame.setMaximumHeight(40)  # **CORREÇÃO: Altura mínima**
+            no_mov_layout = QVBoxLayout(no_mov_frame)
+            no_mov_layout.setContentsMargins(8, 5, 8, 5)
+            
+            no_mov_label = QLabel("💤 Sem movimentos")
+            no_mov_label.setFont(QFont("Arial", 8))
+            no_mov_label.setStyleSheet("color: #6c757d; font-style: italic;")
+            no_mov_layout.addWidget(no_mov_label)
+            layout.addWidget(no_mov_frame)
+        
+        # **CORREÇÃO: Seção de estoque final com altura controlada**
+        final_frame = QFrame()
+        final_frame.setStyleSheet("background-color: #d1ecf1; border-radius: 4px; margin: 2px;")
+        final_frame.setMaximumHeight(80)  # **CORREÇÃO: Altura máxima**
+        final_layout = QVBoxLayout(final_frame)
+        final_layout.setContentsMargins(8, 5, 8, 5)
+        final_layout.setSpacing(2)
+        
+        final_title = QLabel("📊 Saldo Final:")
+        final_title.setFont(QFont("Arial", 9, QFont.Bold))
+        final_title.setStyleSheet("color: #0c5460;")
+        final_layout.addWidget(final_title)
+        
+        final_stock = day_data['stock']
+        
+        # **CORREÇÃO: Limita itens mostrados no saldo final**
+        if final_stock:
+            shown_final = 0
+            max_final = 2  # Máximo 2 itens
+            
+            for asset, quantity in list(final_stock.items())[:max_final]:
+                normalized_filter = normalize_asset_name(self.asset_filter) if self.asset_filter != "Todos" else "Todos"
+                
+                if self.asset_filter == "Todos" or normalized_filter == asset:
+                    previous_qty = previous_stock.get(asset, 0) if previous_stock else 0
+                    
+                    if quantity != previous_qty:
+                        if quantity > previous_qty:
+                            change_icon = "📈"
+                            change_color = "#28a745"
+                        else:
+                            change_icon = "📉"
+                            change_color = "#dc3545"
+                        stock_text = f"• {asset}: {quantity:,} {change_icon}".replace(",", ".")
+                        stock_label = QLabel(stock_text)
+                        stock_label.setFont(QFont("Arial", 8, QFont.Bold))  # **CORREÇÃO: Fonte menor**
+                        stock_label.setStyleSheet(f"padding: 1px; color: {change_color};")
+                    else:
+                        stock_label = QLabel(f"• {asset}: {quantity:,}".replace(",", "."))
+                        stock_label.setFont(QFont("Arial", 8))
+                        stock_label.setStyleSheet("padding: 1px;")
+                    
+                    final_layout.addWidget(stock_label)
+                    shown_final += 1
+            
+            # Se há mais itens, mostra indicador
+            if len(final_stock) > max_final:
+                more_final_label = QLabel(f"... e mais {len(final_stock) - max_final} itens")
+                more_final_label.setFont(QFont("Arial", 8))
+                more_final_label.setStyleSheet("color: #666; font-style: italic; padding: 1px;")
+                final_layout.addWidget(more_final_label)
+        else:
+            zero_label = QLabel("• Saldo: 0")
+            zero_label.setFont(QFont("Arial", 8))
+            zero_label.setStyleSheet("padding: 1px; color: #666;")
+            final_layout.addWidget(zero_label)
+        
+        layout.addWidget(final_frame)
+        
+        # **CORREÇÃO: Remove stretch para manter altura compacta**
+        # layout.addStretch()  # REMOVIDO
+        
+        self.flow_layout.addWidget(card)
+
+    def add_arrow(self):
+        """Adiciona seta entre os cards"""
+        arrow_widget = QWidget()
+        arrow_widget.setFixedWidth(50)  # **CORREÇÃO: Largura menor**
+        arrow_widget.setMinimumHeight(100)
+        arrow_widget.setMaximumHeight(300)  # **CORREÇÃO: Altura máxima**
+        
+        def paint_arrow(event):
+            painter = QPainter(arrow_widget)
+            painter.setRenderHint(QPainter.Antialiasing)
+            
+            pen = QPen(QColor("#007bff"))
+            pen.setWidth(3)
+            painter.setPen(pen)
+            
+            start_x = 5
+            end_x = 45
+            y = arrow_widget.height() // 2
+            
+            painter.drawLine(start_x, y, end_x - 12, y)
+            painter.drawLine(end_x - 12, y, end_x - 20, y - 8)
+            painter.drawLine(end_x - 12, y, end_x - 20, y + 8)
+        
+        arrow_widget.paintEvent = paint_arrow
+        self.flow_layout.addWidget(arrow_widget)
+
+    def get_initial_inventory(self):
+        """Obtém dados do inventário inicial (só para lojas)"""
+        if self.is_cd:
+            return {}
+        
+        inventory_match = self.db.find_best_inventory_match(self.location_name)
+        if not inventory_match:
+            return {}
+        
+        query = "SELECT ativo, quantidade FROM inventario_inicial WHERE loja_nome_simples = ?"
+        result = self.db._execute_query(query, (inventory_match,))
+        return {row['ativo']: row['quantidade'] for row in result}
+
+    def export_flow(self):
+        """Exporta dados do fluxo para CSV melhorado"""
+        try:
+            from PyQt5.QtWidgets import QFileDialog, QMessageBox
+            import pandas as pd
+            
+            file_path, _ = QFileDialog.getSaveFileName(
+                self, "Salvar Fluxo", f"fluxo_{self.location_name.replace(' ', '_')}.csv", "CSV (*.csv)"
+            )
+            
+            if file_path:
+                export_data = []
                 
                 if not self.is_cd:
                     initial_inventory = self.get_initial_inventory()
-                    assets_found.update(initial_inventory.keys())
+                    for asset, qty in initial_inventory.items():
+                        export_data.append({
+                            'Data': '08/06/2025',
+                            'Tipo': 'Inventário Inicial',
+                            'Ativo': asset,
+                            'Saldo_Inicial': qty,
+                            'Movimento_Tipo': '',
+                            'Movimento_Quantidade': '',
+                            'Saldo_Final': qty
+                        })
+                    previous_stock = initial_inventory.copy()
+                else:
+                    previous_stock = {}
                 
                 for day_data in self.daily_data:
+                    date = day_data['date']
                     movements = day_data.get('movements', [])
-                    if isinstance(movements, list):
-                        for mov in movements:
-                            if hasattr(mov, 'keys'):
-                                rti = mov['rti'] if mov['rti'] else None
-                            else:
-                                rti = mov.get('rti')
-                            
-                            if rti:
-                                normalized_rti = str(rti).strip().upper().replace(' ', '')
-                                assets_found.add(normalized_rti)
-                
-                for asset in sorted(assets_found):
-                    self.asset_combo.addItem(asset)
-            
-            self.asset_combo.currentTextChanged.connect(self.on_filter_changed)
-            header_layout.addWidget(self.asset_combo)
-            
-            main_layout.addLayout(header_layout)
-            
-            # Área de scroll responsiva
-            self.scroll_area = QScrollArea()
-            self.scroll_area.setWidgetResizable(True)
-            self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-            self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-            
-            self.flow_widget = QWidget()
-            self.flow_layout = QHBoxLayout(self.flow_widget)
-            self.flow_layout.setSpacing(15)  # **CORREÇÃO: Espaçamento menor**
-            self.flow_layout.setContentsMargins(10, 10, 10, 10)  # **CORREÇÃO: Margens menores**
-            
-            self.scroll_area.setWidget(self.flow_widget)
-            main_layout.addWidget(self.scroll_area)
-            
-            # Botões de ação responsivos
-            button_layout = QHBoxLayout()
-            
-            export_btn = QPushButton("💾 Exportar Fluxo")
-            export_btn.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
-            export_btn.clicked.connect(self.export_flow)
-            button_layout.addWidget(export_btn)
-            
-            button_layout.addStretch()
-            
-            close_btn = QPushButton("❌ Fechar")
-            close_btn.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte menor**
-            close_btn.clicked.connect(self.close)
-            button_layout.addWidget(close_btn)
-            
-            main_layout.addLayout(button_layout)
-
-        
-
-        def open_complete_analysis(self):
-            """Abre análise completa para CDs"""
-            analysis_dialog = CDFlowAnalysisDialog(self.location_name, self.db, self)
-            analysis_dialog.exec_()
-
-        # Resto dos métodos permanecem iguais do código original...
-        def get_cd_daily_evolution(self, cd_name):
-            """Calcula evolução diária para CDs"""
-            print(f"=== EVOLUÇÃO CD PARA {cd_name} ===")
-            
-            movements_query = """
-            SELECT data_movimento, tipo_movimento, rti, quantidade, local_origem, local_destino
-            FROM movimentos 
-            WHERE (local_origem = ? OR local_destino = ?)
-            ORDER BY data_movimento ASC, id ASC
-            """
-            movements = self.db._execute_query(movements_query, (cd_name, cd_name))
-
-            def normalize_asset_name(asset_name):
-                if not asset_name:
-                    return 'N/A'
-                normalized = str(asset_name).strip().upper()
-                normalized = normalized.replace(' ', '')
-                return normalized
-
-            from collections import defaultdict
-            movements_by_date = defaultdict(list)
-            for mov in movements:
-                movements_by_date[mov['data_movimento']].append(mov)
-
-            daily_evolution = []
-            current_stock = defaultdict(int)  # Começa com zero para CDs
-            
-            # Processa cada data em ordem
-            for date in sorted(movements_by_date.keys()):
-                day_movements = movements_by_date[date]
-                
-                print(f"\n--- Processando data CD: {date} ---")
-                print(f"Estoque CD no início do dia: {dict(current_stock)}")
-                
-                # Aplica todos os movimentos do dia
-                for mov in day_movements:
-                    raw_rti = mov['rti'] if mov['rti'] else 'N/A'
-                    rti = normalize_asset_name(raw_rti)
-                    qtde = mov['quantidade']
-                    tipo = mov['tipo_movimento']
-                    origem = mov['local_origem']
-                    destino = mov['local_destino']
+                    final_stock = day_data['stock']
                     
-                    print(f"Movimento CD: {tipo} {qtde} '{raw_rti}' -> '{rti}' (de {origem} para {destino})")
-                    
-                    old_qty = current_stock[rti]
-                    
-                    # Lógica para CDs
-                    if destino == cd_name:
-                        if tipo in ('Regresso', 'Entrega', 'Transferencia', 'Retorno'):
-                            current_stock[rti] += qtde
-                            print(f"  ✅ Entrada CD: {rti} {old_qty} + {qtde} = {current_stock[rti]}")
-                            
-                    elif origem == cd_name:
-                        if tipo in ('Remessa', 'Transferencia', 'Devolução de Entrega'):
-                            current_stock[rti] -= qtde
-                            print(f"  ❌ Saída CD: {rti} {old_qty} - {qtde} = {current_stock[rti]}")
-
-                print(f"Estoque CD final do dia {date}: {dict(current_stock)}")
-
-                daily_evolution.append({
-                    'date': date,
-                    'stock': current_stock.copy(),
-                    'movements': day_movements.copy()
-                })
-
-            return daily_evolution
-
-        def on_filter_changed(self, asset_name):
-            self.asset_filter = asset_name
-            self.update_flow_display()
-
-        def update_flow_display(self):
-            # Limpa layout atual
-            for i in reversed(range(self.flow_layout.count())):
-                child = self.flow_layout.itemAt(i).widget()
-                if child:
-                    child.setParent(None)
-            
-            if not self.daily_data:
-                no_data_label = QLabel(f"❌ Nenhum dado encontrado para {self.location_name}.\n\n📦 {'Carregue o inventário inicial nas configurações.' if not self.is_cd else 'Verifique se há movimentos para este CD.'}")
-                no_data_label.setAlignment(Qt.AlignCenter)
-                no_data_label.setFont(QFont("Arial", 14))
-                no_data_label.setStyleSheet("""
-                    QLabel {
-                        color: #666; 
-                        font-size: 16px; 
-                        padding: 50px;
-                        background-color: #f8f9fa;
-                        border: 2px dashed #dee2e6;
-                        border-radius: 10px;
-                    }
-                """)
-                self.flow_layout.addWidget(no_data_label)
-                return
-            
-            # Para lojas, adiciona inventário inicial
-            if not self.is_cd:
-                self.add_inventory_card()
-                if self.daily_data:
-                    self.add_arrow()
-            
-            # Adiciona cards para cada dia
-            for i, day_data in enumerate(self.daily_data):
-                self.add_day_card(day_data, i)
-                
-                if i < len(self.daily_data) - 1:
-                    self.add_arrow()
-            
-            self.flow_layout.addStretch()
-
-        def add_inventory_card(self):
-            """Adiciona card do inventário inicial (só para lojas)"""
-            card = QFrame()
-            card.setFrameStyle(QFrame.Box)
-            card.setLineWidth(2)
-            card.setStyleSheet("""
-                QFrame {
-                    background-color: #e8f5e8;
-                    border: 2px solid #5cb85c;
-                    border-radius: 8px;
-                    margin: 3px;
-                }
-            """)
-            card.setFixedWidth(280)
-            card.setMinimumHeight(250)
-            
-            layout = QVBoxLayout(card)
-            layout.setSpacing(8)
-            layout.setContentsMargins(12, 12, 12, 12)
-            
-            # Título
-            title = QLabel("📦 INVENTÁRIO INICIAL")
-            title.setAlignment(Qt.AlignCenter)
-            title_font = QFont()
-            title_font.setBold(True)
-            title_font.setPointSize(12)
-            title.setFont(title_font)
-            layout.addWidget(title)
-            
-            # Data
-            date_label = QLabel("📅 08/06/2025")
-            date_label.setAlignment(Qt.AlignCenter)
-            date_label.setFont(QFont("Arial", 10))
-            date_label.setStyleSheet("color: #666;")
-            layout.addWidget(date_label)
-            
-            # Separador
-            separator = QFrame()
-            separator.setFrameShape(QFrame.HLine)
-            separator.setStyleSheet("background-color: #5cb85c;")
-            layout.addWidget(separator)
-            
-            # Estoque inicial
-            stock_title = QLabel("📊 Estoque Base:")
-            stock_title.setFont(QFont("Arial", 10, QFont.Bold))
-            stock_title.setStyleSheet("color: #2d5a2d;")
-            layout.addWidget(stock_title)
-            
-            inventory_data = self.get_initial_inventory()
-            if inventory_data:
-                for asset, quantity in inventory_data.items():
-                    if self.asset_filter == "Todos" or self.asset_filter == asset:
-                        asset_label = QLabel(f"• {asset}: {quantity:,}".replace(",", "."))
-                        asset_label.setFont(QFont("Arial", 11, QFont.Bold))
-                        asset_label.setStyleSheet("padding: 3px;")
-                        layout.addWidget(asset_label)
-            else:
-                no_stock_label = QLabel("⚠️ Sem dados")
-                no_stock_label.setFont(QFont("Arial", 10))
-                no_stock_label.setStyleSheet("color: #999; font-style: italic;")
-                layout.addWidget(no_stock_label)
-            
-            layout.addStretch()
-            self.flow_layout.addWidget(card)
-
-        def add_day_card(self, day_data, day_index):
-            """Adiciona card de um dia específico"""
-            
-            def normalize_asset_name(asset_name):
-                if not asset_name:
-                    return 'N/A'
-                normalized = str(asset_name).strip().upper()
-                normalized = normalized.replace(' ', '')
-                return normalized
-            
-            card = QFrame()
-            card.setFrameStyle(QFrame.Box)
-            card.setLineWidth(2)
-            card.setStyleSheet("""
-                QFrame {
-                    background-color: #f8f9fa;
-                    border: 2px solid #007bff;
-                    border-radius: 8px;
-                    margin: 3px;
-                }
-            """)
-            card.setFixedWidth(250)  # Reduzido de 300 para 250
-            card.setMinimumHeight(280)  # Reduzido de 350 para 280
-            card.setMaximumHeight(400)
-            
-            layout = QVBoxLayout(card)
-            layout.setSpacing(4)
-            layout.setContentsMargins(8,8,8,8)
-            
-            # Título com data
-            date_str = day_data['date']
-            if isinstance(date_str, str):
-                try:
-                    date_obj = datetime.strptime(date_str, '%Y-%m-%d')
-                    formatted_date = date_obj.strftime('%d/%m/%Y')
-                    day_name = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][date_obj.weekday()]
-                    title_text = f"📅 {formatted_date} ({day_name})"
-                except:
-                    title_text = f"📅 {date_str}"
-            else:
-                title_text = f"📅 {date_str}"
-                
-            title = QLabel(title_text)
-            title.setAlignment(Qt.AlignCenter)
-            title_font = QFont()
-            title_font.setBold(True)
-            title_font.setPointSize(9)
-            title.setFont(title_font)
-            layout.addWidget(title)
-            
-            # Saldo inicial do dia
-            if not self.is_cd and day_index == 0:
-                previous_stock = self.get_initial_inventory()
-            elif not self.is_cd and day_index > 0:
-                previous_day_data = self.daily_data[day_index - 1]
-                previous_stock = previous_day_data['stock']
-            else:
-                if day_index == 0:
-                    previous_stock = {}
-                else:
-                    previous_day_data = self.daily_data[day_index - 1]
-                    previous_stock = previous_day_data['stock']
-            
-            # Seção: Saldo inicial do dia
-            initial_frame = QFrame()
-            initial_frame.setStyleSheet("background-color: #e3f2fd; border-radius: 4px; margin: 2px;")
-            initial_layout = QVBoxLayout(initial_frame)
-            initial_layout.setContentsMargins(8, 5, 8, 5)
-            
-            initial_title = QLabel("📊 Saldo Inicial:")
-            initial_title.setFont(QFont("Arial", 9, QFont.Bold))
-            initial_title.setStyleSheet("color: #1565c0;")
-            initial_layout.addWidget(initial_title)
-            
-            if previous_stock:
-                for asset, quantity in previous_stock.items():
-                    if self.asset_filter == "Todos" or self.asset_filter == asset:
-                        initial_label = QLabel(f"• {asset}: {quantity:,}".replace(",", "."))
-                        initial_label.setFont(QFont("Arial", 9))
-                        initial_label.setStyleSheet("padding: 2px;")
-                        initial_layout.addWidget(initial_label)
-            else:
-                zero_label = QLabel("• Saldo: 0 (início)")
-                zero_label.setFont(QFont("Arial", 9))
-                zero_label.setStyleSheet("padding: 2px; color: #666;")
-                initial_layout.addWidget(zero_label)
-            
-            layout.addWidget(initial_frame)
-            
-            # Seção: Movimentos do dia
-            movements = day_data.get('movements', [])
-            if movements:
-                movements_frame = QFrame()
-                movements_frame.setStyleSheet("background-color: #fff3cd; border-radius: 4px; margin: 2px;")
-                movements_layout = QVBoxLayout(movements_frame)
-                movements_layout.setContentsMargins(8, 5, 8, 5)
-                
-                movements_title = QLabel("🔄 Movimentos:")
-                movements_title.setFont(QFont("Arial", 9, QFont.Bold))
-                movements_title.setStyleSheet("color: #856404;")
-                movements_layout.addWidget(movements_title)
-                
-                for mov in movements:
-                    if hasattr(mov, 'keys'):
-                        raw_rti = mov['rti'] if mov['rti'] else 'N/A'
-                        rti = normalize_asset_name(raw_rti)
-                        tipo = mov['tipo_movimento']
-                        qtde = mov['quantidade']
-                        origem = mov['local_origem']
-                        destino = mov['local_destino']
-                    else:
-                        raw_rti = mov.get('rti', 'N/A') or 'N/A'
-                        rti = normalize_asset_name(raw_rti)
-                        tipo = mov.get('tipo_movimento', '')
-                        qtde = mov.get('quantidade', 0)
-                        origem = mov.get('local_origem', '')
-                        destino = mov.get('local_destino', '')
-                    
-                    if self.asset_filter == "Todos" or normalize_asset_name(self.asset_filter) == rti:
-                        if self.is_cd:
-                            if destino == self.location_name:
-                                color = "#28a745"
-                                icon = "📥"
-                                signal = "+"
-                            elif origem == self.location_name:
-                                color = "#dc3545"
-                                icon = "📤"
-                                signal = "-"
-                            else:
-                                color = "#6c757d"
-                                icon = "🔄"
-                                signal = "="
-                        else:
-                            if tipo == 'Remessa':
-                                color = "#28a745"
-                                icon = "📥"
-                                signal = "+"
-                            else:
-                                color = "#dc3545"
-                                icon = "📤"
-                                signal = "-"
-                        
-                        mov_label = QLabel(f"{icon} {signal}{qtde:,} {rti}".replace(",", "."))
-                        mov_label.setFont(QFont("Arial", 9, QFont.Bold))
-                        mov_label.setStyleSheet(f"color: {color}; padding: 2px;")
-                        movements_layout.addWidget(mov_label)
-                
-                layout.addWidget(movements_frame)
-            else:
-                no_mov_frame = QFrame()
-                no_mov_frame.setStyleSheet("background-color: #f8f9fa; border-radius: 4px; margin: 2px;")
-                no_mov_layout = QVBoxLayout(no_mov_frame)
-                no_mov_layout.setContentsMargins(8, 5, 8, 5)
-                
-                no_mov_label = QLabel("💤 Sem movimentos")
-                no_mov_label.setFont(QFont("Arial", 9))
-                no_mov_label.setStyleSheet("color: #6c757d; font-style: italic;")
-                no_mov_layout.addWidget(no_mov_label)
-                layout.addWidget(no_mov_frame)
-            
-            # Seção: Estoque final do dia
-            final_frame = QFrame()
-            final_frame.setStyleSheet("background-color: #d1ecf1; border-radius: 4px; margin: 2px;")
-            final_layout = QVBoxLayout(final_frame)
-            final_layout.setContentsMargins(8, 5, 8, 5)
-            
-            final_title = QLabel("📊 Saldo Final:")
-            final_title.setFont(QFont("Arial", 9, QFont.Bold))
-            final_title.setStyleSheet("color: #0c5460;")
-            final_layout.addWidget(final_title)
-            
-            final_stock = day_data['stock']
-            
-            if final_stock:
-                for asset, quantity in final_stock.items():
-                    normalized_filter = normalize_asset_name(self.asset_filter) if self.asset_filter != "Todos" else "Todos"
-                    
-                    if self.asset_filter == "Todos" or normalized_filter == asset:
-                        previous_qty = previous_stock.get(asset, 0) if previous_stock else 0
-                        
-                        if quantity != previous_qty:
-                            if quantity > previous_qty:
-                                change_icon = "📈"
-                                change_color = "#28a745"
-                            else:
-                                change_icon = "📉"
-                                change_color = "#dc3545"
-                            stock_text = f"• {asset}: {quantity:,} {change_icon}".replace(",", ".")
-                            stock_label = QLabel(stock_text)
-                            stock_label.setFont(QFont("Arial", 10, QFont.Bold))
-                            stock_label.setStyleSheet(f"padding: 2px; color: {change_color};")
-                        else:
-                            stock_label = QLabel(f"• {asset}: {quantity:,}".replace(",", "."))
-                            stock_label.setFont(QFont("Arial", 9))
-                            stock_label.setStyleSheet("padding: 2px;")
-                        
-                        final_layout.addWidget(stock_label)
-            else:
-                zero_label = QLabel("• Saldo: 0")
-                zero_label.setFont(QFont("Arial", 9))
-                zero_label.setStyleSheet("padding: 2px; color: #666;")
-                final_layout.addWidget(zero_label)
-            
-            layout.addWidget(final_frame)
-            layout.addStretch()
-            
-            self.flow_layout.addWidget(card)
-
-        def add_arrow(self):
-            """Adiciona seta entre os cards"""
-            arrow_widget = QWidget()
-            arrow_widget.setFixedWidth(60)
-            arrow_widget.setMinimumHeight(100)
-            
-            def paint_arrow(event):
-                painter = QPainter(arrow_widget)
-                painter.setRenderHint(QPainter.Antialiasing)
-                
-                pen = QPen(QColor("#007bff"))
-                pen.setWidth(3)
-                painter.setPen(pen)
-                
-                start_x = 10
-                end_x = 50
-                y = arrow_widget.height() // 2
-                
-                painter.drawLine(start_x, y, end_x - 12, y)
-                painter.drawLine(end_x - 12, y, end_x - 20, y - 8)
-                painter.drawLine(end_x - 12, y, end_x - 20, y + 8)
-            
-            arrow_widget.paintEvent = paint_arrow
-            self.flow_layout.addWidget(arrow_widget)
-
-        def get_initial_inventory(self):
-            """Obtém dados do inventário inicial (só para lojas)"""
-            if self.is_cd:
-                return {}
-            
-            inventory_match = self.db.find_best_inventory_match(self.location_name)
-            if not inventory_match:
-                return {}
-            
-            query = "SELECT ativo, quantidade FROM inventario_inicial WHERE loja_nome_simples = ?"
-            result = self.db._execute_query(query, (inventory_match,))
-            return {row['ativo']: row['quantidade'] for row in result}
-
-        def export_flow(self):
-            """Exporta dados do fluxo para CSV melhorado"""
-            try:
-                from PyQt5.QtWidgets import QFileDialog, QMessageBox
-                import pandas as pd
-                
-                file_path, _ = QFileDialog.getSaveFileName(
-                    self, "Salvar Fluxo", f"fluxo_{self.location_name.replace(' ', '_')}.csv", "CSV (*.csv)"
-                )
-                
-                if file_path:
-                    export_data = []
-                    
-                    if not self.is_cd:
-                        initial_inventory = self.get_initial_inventory()
-                        for asset, qty in initial_inventory.items():
+                    if not movements:
+                        for asset in set(list(previous_stock.keys()) + list(final_stock.keys())):
                             export_data.append({
-                                'Data': '08/06/2025',
-                                'Tipo': 'Inventário Inicial',
+                                'Data': date,
+                                'Tipo': 'Sem Movimento',
                                 'Ativo': asset,
-                                'Saldo_Inicial': qty,
+                                'Saldo_Inicial': previous_stock.get(asset, 0),
                                 'Movimento_Tipo': '',
                                 'Movimento_Quantidade': '',
-                                'Saldo_Final': qty
+                                'Saldo_Final': final_stock.get(asset, 0)
                             })
-                        previous_stock = initial_inventory.copy()
                     else:
-                        previous_stock = {}
-                    
-                    for day_data in self.daily_data:
-                        date = day_data['date']
-                        movements = day_data.get('movements', [])
-                        final_stock = day_data['stock']
-                        
-                        if not movements:
-                            for asset in set(list(previous_stock.keys()) + list(final_stock.keys())):
-                                export_data.append({
-                                    'Data': date,
-                                    'Tipo': 'Sem Movimento',
-                                    'Ativo': asset,
-                                    'Saldo_Inicial': previous_stock.get(asset, 0),
-                                    'Movimento_Tipo': '',
-                                    'Movimento_Quantidade': '',
-                                    'Saldo_Final': final_stock.get(asset, 0)
-                                })
-                        else:
-                            movements_by_asset = {}
-                            for mov in movements:
-                                if hasattr(mov, 'keys'):
-                                    rti = mov['rti'] if mov['rti'] else 'N/A'
-                                else:
-                                    rti = mov.get('rti', 'N/A') or 'N/A'
-                                
-                                rti_normalized = str(rti).strip().upper().replace(' ', '')
-                                
-                                if rti_normalized not in movements_by_asset:
-                                    movements_by_asset[rti_normalized] = []
-                                movements_by_asset[rti_normalized].append(mov)
+                        movements_by_asset = {}
+                        for mov in movements:
+                            if hasattr(mov, 'keys'):
+                                rti = mov['rti'] if mov['rti'] else 'N/A'
+                            else:
+                                rti = mov.get('rti', 'N/A') or 'N/A'
                             
-                            for asset in set(list(previous_stock.keys()) + list(final_stock.keys()) + list(movements_by_asset.keys())):
-                                mov_details = []
-                                mov_types = []
-                                
-                                if asset in movements_by_asset:
-                                    for mov in movements_by_asset[asset]:
-                                        if hasattr(mov, 'keys'):
-                                            mov_type = mov['tipo_movimento']
-                                            mov_qty = mov['quantidade']
-                                            origem = mov['local_origem']
-                                            destino = mov['local_destino']
-                                        else:
-                                            mov_type = mov.get('tipo_movimento', '')
-                                            mov_qty = mov.get('quantidade', 0)
-                                            origem = mov.get('local_origem', '')
-                                            destino = mov.get('local_destino', '')
-                                        
-                                        mov_types.append(mov_type)
-                                        
-                                        if self.is_cd:
-                                            if destino == self.location_name:
-                                                mov_details.append(f"+{mov_qty}")
-                                            elif origem == self.location_name:
-                                                mov_details.append(f"-{mov_qty}")
-                                            else:
-                                                mov_details.append(f"={mov_qty}")
-                                        else:
-                                            if mov_type == 'Remessa':
-                                                mov_details.append(f"+{mov_qty}")
-                                            else:
-                                                mov_details.append(f"-{mov_qty}")
-                                
-                                export_data.append({
-                                    'Data': date,
-                                    'Tipo': 'Movimento',
-                                    'Ativo': asset,
-                                    'Saldo_Inicial': previous_stock.get(asset, 0),
-                                    'Movimento_Tipo': '; '.join(mov_types),
-                                    'Movimento_Quantidade': '; '.join(mov_details),
-                                    'Saldo_Final': final_stock.get(asset, 0)
-                                })
+                            rti_normalized = str(rti).strip().upper().replace(' ', '')
+                            
+                            if rti_normalized not in movements_by_asset:
+                                movements_by_asset[rti_normalized] = []
+                            movements_by_asset[rti_normalized].append(mov)
                         
-                        previous_stock = final_stock.copy()
+                        for asset in set(list(previous_stock.keys()) + list(final_stock.keys()) + list(movements_by_asset.keys())):
+                            mov_details = []
+                            mov_types = []
+                            
+                            if asset in movements_by_asset:
+                                for mov in movements_by_asset[asset]:
+                                    if hasattr(mov, 'keys'):
+                                        mov_type = mov['tipo_movimento']
+                                        mov_qty = mov['quantidade']
+                                        origem = mov['local_origem']
+                                        destino = mov['local_destino']
+                                    else:
+                                        mov_type = mov.get('tipo_movimento', '')
+                                        mov_qty = mov.get('quantidade', 0)
+                                        origem = mov.get('local_origem', '')
+                                        destino = mov.get('local_destino', '')
+                                    
+                                    mov_types.append(mov_type)
+                                    
+                                    if self.is_cd:
+                                        if destino == self.location_name:
+                                            mov_details.append(f"+{mov_qty}")
+                                        elif origem == self.location_name:
+                                            mov_details.append(f"-{mov_qty}")
+                                        else:
+                                            mov_details.append(f"={mov_qty}")
+                                    else:
+                                        if mov_type == 'Remessa':
+                                            mov_details.append(f"+{mov_qty}")
+                                        else:
+                                            mov_details.append(f"-{mov_qty}")
+                            
+                            export_data.append({
+                                'Data': date,
+                                'Tipo': 'Movimento',
+                                'Ativo': asset,
+                                'Saldo_Inicial': previous_stock.get(asset, 0),
+                                'Movimento_Tipo': '; '.join(mov_types),
+                                'Movimento_Quantidade': '; '.join(mov_details),
+                                'Saldo_Final': final_stock.get(asset, 0)
+                            })
                     
-                    df = pd.DataFrame(export_data)
-                    df.to_csv(file_path, index=False, sep=';', encoding='utf-8-sig')
-                    QMessageBox.information(self, "✅ Sucesso", f"Fluxo exportado para:\n{file_path}")
-                    
-            except Exception as e:
-                QMessageBox.critical(self, "❌ Erro", f"Erro ao exportar: {e}")
+                    previous_stock = final_stock.copy()
+                
+                df = pd.DataFrame(export_data)
+                df.to_csv(file_path, index=False, sep=';', encoding='utf-8-sig')
+                QMessageBox.information(self, "✅ Sucesso", f"Fluxo exportado para:\n{file_path}")
+                
+        except Exception as e:
+            QMessageBox.critical(self, "❌ Erro", f"Erro ao exportar: {e}")
 
-        def resizeEvent(self, event):
-            """Garante que o scroll funcione corretamente ao redimensionar"""
-            super().resizeEvent(event)
-            if hasattr(self, 'flow_widget'):
-                self.flow_widget.updateGeometry()
+    def resizeEvent(self, event):
+        """Garante que o scroll funcione corretamente ao redimensionar"""
+        super().resizeEvent(event)
+        if hasattr(self, 'flow_widget'):
+            self.flow_widget.updateGeometry()

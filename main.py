@@ -1024,6 +1024,7 @@ if __name__ == '__main__':
     screen_size = screen.size()
     
     if screen_size.width() < 1920:
+
         app.setFont(QFont("Arial", 9))
     else:
         app.setFont(QFont("Arial", 10))
