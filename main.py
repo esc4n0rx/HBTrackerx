@@ -1,5 +1,13 @@
+# main.py - VERSÃO CORRIGIDA COM HIGH DPI SUPPORT
 import sys
+import os
 import pandas as pd
+
+# **CORREÇÃO CRÍTICA: Configura DPI ANTES de importar PyQt5**
+os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
+os.environ["QT_SCALE_FACTOR"] = "1.0"
+
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QGridLayout, QLabel, QAction, QFileDialog, 
                              QMessageBox, QGroupBox, QComboBox, QTableView, QHeaderView, QPushButton, QHBoxLayout, 
                              QTabWidget, QFrame, QSplitter, QTextEdit,QDialog,QScrollArea)
@@ -17,8 +25,13 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.db = Database("estoque.db")
-        self.setWindowTitle("Sistema de Controle de Caixas v2.1 - Com Inventário Inicial")
+        self.setWindowTitle("Sistema de Controle de Caixas v2.2 - Com Suporte para CDs")
         self.setGeometry(100, 100, 1400, 900)
+        
+        # **CORREÇÃO: Configura font base maior**
+        base_font = QFont()
+        base_font.setPointSize(10)
+        self.setFont(base_font)
         
         self.cd_map = {
             'CD RJ': 'CD HORTIFRUTI - Rio de Janeiro (RJ)',
@@ -31,8 +44,23 @@ class MainWindow(QMainWindow):
         self.create_menu()
         self.update_all_views()
 
+    def show_visual_flow_dialog(self):
+        """CORREÇÃO: Mostra o diálogo de fluxo visual para CDs e Lojas"""
+        location_text = self.location_combo.currentText()
+        if location_text and "Selecione" not in location_text:
+            location_name = location_text.replace("🏢 ", "").replace("🏪 ", "")
+            
+            # **CORREÇÃO PRINCIPAL: Remove restrição para CDs**
+            dialog = FlowVisualDialog(location_name, self.db, self)
+            dialog.exec_()
+
     def create_menu(self):
         menu_bar = self.menuBar()
+        
+        # **CORREÇÃO: Fontes maiores no menu**
+        menu_font = QFont()
+        menu_font.setPointSize(10)
+        menu_bar.setFont(menu_font)
         
         # Menu Arquivo
         file_menu = menu_bar.addMenu("📁 Arquivo")
@@ -69,8 +97,7 @@ class MainWindow(QMainWindow):
         settings_action.triggered.connect(self.open_settings)
         tools_menu.addAction(settings_action)
 
-
-         # NOVO: Menu de Atualizações
+        # Menu de Atualizações
         update_menu = menu_bar.addMenu("🔄 Atualizações")
         
         check_updates_action = QAction("🔍 Verificar Atualizações", self)
@@ -82,25 +109,16 @@ class MainWindow(QMainWindow):
         about_action = QAction("ℹ️ Sobre", self)
         about_action.triggered.connect(self.show_about)
         update_menu.addAction(about_action)
-        
-        # Verificação automática na inicialização (opcional)
-        #QTimer.singleShot(2000, self.check_updates_auto)
 
     def check_updates_manual(self):
         """Abre diálogo de atualizações manualmente"""
         dialog = UpdateDialog(self, auto_check=False)
         dialog.exec_()
 
-    def check_updates_auto(self):
-        """Verificação automática silenciosa"""
-        dialog = UpdateDialog(self, auto_check=True)
-        dialog.exec_()
-
     def show_about(self):
-        """Mostra informações sobre a aplicação - VERSÃO MELHORADA"""
+        """Mostra informações sobre a aplicação"""
         app_info = Version.get_app_info()
         
-        # NOVO: Layout melhorado com mais informações
         about_text = f"""
         <div style="text-align: center;">
             <h1>🔧 {app_info['name']}</h1>
@@ -114,16 +132,15 @@ class MainWindow(QMainWindow):
             <tr><td><b>🏷️ Versão:</b></td><td>{app_info['version']}</td></tr>
             <tr><td><b>📅 Data de Build:</b></td><td>{app_info['build_date']}</td></tr>
             <tr><td><b>📝 Descrição:</b></td><td>{app_info['description']}</td></tr>
-            <tr><td><b>🤖 Tipo de Build:</b></td><td>{'Automático' if app_info['version'] != '0.0.1' else 'Manual'}</td></tr>
         </table>
         
         <hr>
         
         <h3>⚡ Funcionalidades Principais</h3>
         <ul>
-            <li>📦 <b>Inventário Inicial:</b> Carregamento de estoque base</li>
+            <li>📦 <b>Inventário Inicial:</b> Carregamento de estoque base para lojas</li>
             <li>📊 <b>Controle de Movimentos:</b> Remessas, regressos e transferências</li>
-            <li>🎯 <b>Fluxo Visual:</b> Acompanhe mudanças dia a dia</li>
+            <li>🎯 <b>Fluxo Visual:</b> Acompanhe mudanças dia a dia (Lojas e CDs)</li>
             <li>📈 <b>Relatórios Completos:</b> Exportação em Excel/CSV</li>
             <li>🔄 <b>Atualizações Automáticas:</b> Sistema sempre atualizado</li>
             <li>🏪 <b>Multi-Local:</b> CDs e Lojas integrados</li>
@@ -131,58 +148,29 @@ class MainWindow(QMainWindow):
         
         <hr>
         
-        <h3>🛠️ Tecnologias Utilizadas</h3>
-        <table border="0" cellpadding="3">
-            <tr>
-                <td><b>🐍 Python:</b></td>
-                <td>3.8+ (Linguagem principal)</td>
-            </tr>
-            <tr>
-                <td><b>🖼️ PyQt5:</b></td>
-                <td>Interface gráfica moderna</td>
-            </tr>
-            <tr>
-                <td><b>🗃️ SQLite:</b></td>
-                <td>Banco de dados integrado</td>
-            </tr>
-            <tr>
-                <td><b>📊 Pandas:</b></td>
-                <td>Processamento de dados</td>
-            </tr>
-            <tr>
-                <td><b>🌐 Requests:</b></td>
-                <td>Sistema de atualizações</td>
-            </tr>
-            <tr>
-                <td><b>📦 PyInstaller:</b></td>
-                <td>Empacotamento executável</td>
-            </tr>
-        </table>
-        
-        <hr>
-        
-        <h3>🔄 Sistema de Atualizações</h3>
-        <p>Esta versão inclui sistema automático de atualizações:</p>
+        <h3>🆕 Novidades desta Versão</h3>
         <ul>
-            <li>✅ Verificação automática na inicialização</li>
-            <li>✅ Download e instalação sem complicações</li>
-            <li>✅ Backup automático antes da atualização</li>
-            <li>✅ Changelog detalhado de cada versão</li>
+            <li>✅ <b>Suporte para CDs:</b> Fluxo visual agora funciona para CDs</li>
+            <li>✅ <b>Fonts Corrigidas:</b> Textos maiores e mais legíveis</li>
+            <li>✅ <b>Atualizações Melhoradas:</b> Sistema de update via GitHub</li>
+            <li>✅ <b>Interface Otimizada:</b> Cards maiores e melhor visualização</li>
         </ul>
         
         <p style="text-align: center; margin-top: 20px;">
             <small style="color: #666;">
                 © 2025 - Sistema de Controle de Caixas<br>
-                <b>🏗️ Build:</b> {datetime.now().strftime('%d/%m/%Y às %H:%M')}<br>
+                <b>🏗️ Build:</b> {datetime.datetime.now().strftime('%d/%m/%Y às %H:%M')}<br>
                 <b>🔗 Powered by:</b> GitHub Actions + PyInstaller
             </small>
         </p>
         """
         
-        # Cria diálogo customizado com scroll
+        # Cria diálogo customizado
+        from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea, QPushButton
+        
         about_dialog = QDialog(self)
         about_dialog.setWindowTitle(f"Sobre {app_info['name']}")
-        about_dialog.setFixedSize(600, 700)
+        about_dialog.setFixedSize(700, 800)  # **CORREÇÃO: Janela maior**
         
         layout = QVBoxLayout(about_dialog)
         
@@ -198,6 +186,7 @@ class MainWindow(QMainWindow):
         about_label = QLabel(about_text)
         about_label.setWordWrap(True)
         about_label.setOpenExternalLinks(True)
+        about_label.setFont(QFont("Arial", 11))  # **CORREÇÃO: Fonte maior**
         about_label.setStyleSheet("""
             QLabel {
                 padding: 20px;
@@ -216,11 +205,12 @@ class MainWindow(QMainWindow):
         
         # Botão para verificar atualizações
         update_btn = QPushButton("🔄 Verificar Atualizações")
+        update_btn.setFont(QFont("Arial", 11))  # **CORREÇÃO: Fonte maior**
         update_btn.setStyleSheet("""
             QPushButton {
                 background-color: #007bff;
                 color: white;
-                padding: 8px 16px;
+                padding: 10px 20px;
                 border: none;
                 border-radius: 4px;
                 font-weight: bold;
@@ -236,6 +226,7 @@ class MainWindow(QMainWindow):
         
         # Botão fechar
         close_btn = QPushButton("❌ Fechar")
+        close_btn.setFont(QFont("Arial", 11))  # **CORREÇÃO: Fonte maior**
         close_btn.clicked.connect(about_dialog.close)
         button_layout.addWidget(close_btn)
         
@@ -285,8 +276,12 @@ class MainWindow(QMainWindow):
         
         status_layout = QHBoxLayout(status_frame)
         
+        # **CORREÇÃO: Fontes maiores no status**
+        status_font = QFont("Arial", 11)
+        
         # Status do inventário
         self.inventory_status = QLabel("📦 Inventário: Não carregado")
+        self.inventory_status.setFont(status_font)
         self.inventory_status.setStyleSheet("color: #dc3545; font-weight: bold;")
         status_layout.addWidget(self.inventory_status)
         
@@ -294,10 +289,12 @@ class MainWindow(QMainWindow):
         
         # Contador de registros
         self.records_count = QLabel("📊 Registros: 0")
+        self.records_count.setFont(status_font)
         status_layout.addWidget(self.records_count)
         
         # Última atualização
         self.last_update = QLabel("🕐 Última atualização: --")
+        self.last_update.setFont(status_font)
         status_layout.addWidget(self.last_update)
         
         parent_layout.addWidget(status_frame)
@@ -310,7 +307,7 @@ class MainWindow(QMainWindow):
         title_layout = QHBoxLayout()
         title_label = QLabel("📊 VISÃO GERAL DO ESTOQUE")
         title_font = QFont()
-        title_font.setPointSize(14)
+        title_font.setPointSize(16)  # **CORREÇÃO: Fonte maior**
         title_font.setBold(True)
         title_label.setFont(title_font)
         title_layout.addWidget(title_label)
@@ -318,14 +315,16 @@ class MainWindow(QMainWindow):
         
         # Botão de atualização rápida
         refresh_btn = QPushButton("🔄 Atualizar")
+        refresh_btn.setFont(QFont("Arial", 11))  # **CORREÇÃO: Fonte maior**
         refresh_btn.clicked.connect(self.update_all_views)
-        refresh_btn.setStyleSheet("QPushButton { padding: 5px 15px; }")
+        refresh_btn.setStyleSheet("QPushButton { padding: 8px 20px; }")  # **CORREÇÃO: Padding maior**
         title_layout.addWidget(refresh_btn)
         
         layout.addLayout(title_layout)
 
         # Abas melhoradas
         self.tabs = QTabWidget()
+        self.tabs.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte maior nas abas**
         self.tabs.setStyleSheet("""
             QTabWidget::pane {
                 border: 1px solid #c0c0c0;
@@ -333,10 +332,11 @@ class MainWindow(QMainWindow):
             }
             QTabBar::tab {
                 background: #f0f0f0;
-                padding: 8px 16px;
+                padding: 10px 20px;
                 margin-right: 2px;
                 border-top-left-radius: 5px;
                 border-top-right-radius: 5px;
+                font-size: 11px;
             }
             QTabBar::tab:selected {
                 background: #007bff;
@@ -358,10 +358,11 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(parent_widget)
         
         details_group = QGroupBox("🔍 ANÁLISE DETALHADA POR LOCAL")
+        details_group.setFont(QFont("Arial", 12, QFont.Bold))  # **CORREÇÃO: Fonte maior**
         details_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
-                font-size: 12px;
+                font-size: 14px;
                 border: 2px solid #007bff;
                 border-radius: 5px;
                 margin-top: 1ex;
@@ -379,33 +380,42 @@ class MainWindow(QMainWindow):
         # Layout de filtro e ações melhorado
         filter_action_layout = QHBoxLayout()
         
-        filter_action_layout.addWidget(QLabel("🏪 Local:"), 1)
+        local_label = QLabel("🏪 Local:")
+        local_label.setFont(QFont("Arial", 11))  # **CORREÇÃO: Fonte maior**
+        filter_action_layout.addWidget(local_label, 1)
         
         self.location_combo = QComboBox()
-        self.location_combo.setStyleSheet("QComboBox { padding: 5px; }")
+        self.location_combo.setFont(QFont("Arial", 11))  # **CORREÇÃO: Fonte maior**
+        self.location_combo.setStyleSheet("QComboBox { padding: 8px; }")  # **CORREÇÃO: Padding maior**
         self.location_combo.currentIndexChanged.connect(self.update_location_details)
         filter_action_layout.addWidget(self.location_combo, 4)
         
-        # Botões de ação melhorados
+        # **CORREÇÃO: Botões de ação com fontes maiores**
+        button_font = QFont("Arial", 10)
+        
         self.view_flow_button = QPushButton("📊 Fluxo Clássico")
-        self.view_flow_button.setStyleSheet("QPushButton { background-color: #28a745; color: white; padding: 5px 10px; }")
+        self.view_flow_button.setFont(button_font)
+        self.view_flow_button.setStyleSheet("QPushButton { background-color: #28a745; color: white; padding: 8px 15px; }")
         self.view_flow_button.clicked.connect(self.show_flow_dialog)
         filter_action_layout.addWidget(self.view_flow_button, 2)
         
         self.view_visual_flow_button = QPushButton("🎯 Fluxo Visual")
-        self.view_visual_flow_button.setStyleSheet("QPushButton { background-color: #007bff; color: white; padding: 5px 10px; }")
+        self.view_visual_flow_button.setFont(button_font)
+        self.view_visual_flow_button.setStyleSheet("QPushButton { background-color: #007bff; color: white; padding: 8px 15px; }")
         self.view_visual_flow_button.clicked.connect(self.show_visual_flow_dialog)
         filter_action_layout.addWidget(self.view_visual_flow_button, 2)
         
         self.export_button = QPushButton("💾 Exportar")
-        self.export_button.setStyleSheet("QPushButton { background-color: #6c757d; color: white; padding: 5px 10px; }")
+        self.export_button.setFont(button_font)
+        self.export_button.setStyleSheet("QPushButton { background-color: #6c757d; color: white; padding: 8px 15px; }")
         self.export_button.clicked.connect(self.export_history)
         filter_action_layout.addWidget(self.export_button, 2)
         
         details_layout.addLayout(filter_action_layout)
         
-        # Tabela melhorada
+        # **CORREÇÃO: Tabela melhorada com fonte maior**
         self.history_table = QTableView()
+        self.history_table.setFont(QFont("Arial", 10))  # **CORREÇÃO: Fonte maior**
         self.history_table.setAlternatingRowColors(True)
         self.history_table.setEditTriggers(QTableView.NoEditTriggers)
         self.history_table.setStyleSheet("""
@@ -414,7 +424,13 @@ class MainWindow(QMainWindow):
                 selection-background-color: #b3d9ff;
             }
             QTableView::item {
-                padding: 4px;
+                padding: 6px;
+            }
+            QHeaderView::section {
+                background-color: #f8f9fa;
+                padding: 8px;
+                border: 1px solid #dee2e6;
+                font-weight: bold;
             }
         """)
         
@@ -428,66 +444,76 @@ class MainWindow(QMainWindow):
         """Cria aba de estoque com layout melhorado"""
         tab_widget = QWidget()
         layout = QGridLayout(tab_widget)
-        layout.setSpacing(10)
+        layout.setSpacing(15)  # **CORREÇÃO: Espaçamento maior**
         
         widgets = {}
         
-        # Cabeçalho com estilo
+        # **CORREÇÃO: Cabeçalho com fonte maior**
         headers = ["🏢 Local", "📦 Estoque Atual", "📈 Status"]
         for i, header in enumerate(headers):
             header_label = QLabel(f"<b>{header}</b>")
+            header_label.setFont(QFont("Arial", 12, QFont.Bold))  # **CORREÇÃO: Fonte maior**
             header_label.setStyleSheet("""
                 QLabel {
                     background-color: #f8f9fa;
                     border: 1px solid #dee2e6;
-                    padding: 8px;
+                    padding: 12px;
                     font-size: 12px;
                 }
             """)
             layout.addWidget(header_label, 0, i)
         
-        # Linhas de CDs
+        # **CORREÇÃO: Linhas de CDs com fonte maior**
+        content_font = QFont("Arial", 11)
+        
         row = 1
         for cd_key, cd_name in self.cd_map.items():
             # Nome do CD
             cd_label = QLabel(cd_name)
-            cd_label.setStyleSheet("padding: 8px; border-bottom: 1px solid #eee;")
+            cd_label.setFont(content_font)
+            cd_label.setStyleSheet("padding: 12px; border-bottom: 1px solid #eee;")
             layout.addWidget(cd_label, row, 0)
             
             # Estoque
             stock_label = QLabel("0")
-            stock_label.setStyleSheet("padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;")
+            stock_label.setFont(QFont("Arial", 11, QFont.Bold))
+            stock_label.setStyleSheet("padding: 12px; border-bottom: 1px solid #eee;")
             widgets[cd_key] = stock_label
             layout.addWidget(stock_label, row, 1)
             
             # Status
             status_label = QLabel("🟢 OK")
-            status_label.setStyleSheet("padding: 8px; border-bottom: 1px solid #eee;")
+            status_label.setFont(content_font)
+            status_label.setStyleSheet("padding: 12px; border-bottom: 1px solid #eee;")
             widgets[f"{cd_key}_status"] = status_label
             layout.addWidget(status_label, row, 2)
             
             row += 1
             
-        # Linha de total das lojas com destaque
+        # **CORREÇÃO: Linha de total das lojas com destaque e fonte maior**
         total_frame = QFrame()
         total_frame.setStyleSheet("""
             QFrame {
                 background-color: #e8f4fd;
                 border: 2px solid #007bff;
                 border-radius: 5px;
-                margin: 5px;
+                margin: 8px;
             }
         """)
         total_layout = QGridLayout(total_frame)
         
-        total_layout.addWidget(QLabel("<b>🏪 TOTAL ESTOQUE LOJAS</b>"), 0, 0)
+        total_title = QLabel("<b>🏪 TOTAL ESTOQUE LOJAS</b>")
+        total_title.setFont(QFont("Arial", 12, QFont.Bold))
+        total_layout.addWidget(total_title, 0, 0)
         
         total_stock_label = QLabel("0")
-        total_stock_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #007bff;")
+        total_stock_label.setFont(QFont("Arial", 14, QFont.Bold))  # **CORREÇÃO: Fonte maior**
+        total_stock_label.setStyleSheet("color: #007bff;")
         widgets['total_lojas'] = total_stock_label
         total_layout.addWidget(total_stock_label, 0, 1)
         
         total_status_label = QLabel("📊 Calculado")
+        total_status_label.setFont(QFont("Arial", 11))
         widgets['total_lojas_status'] = total_status_label
         total_layout.addWidget(total_status_label, 0, 2)
         
@@ -496,6 +522,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(tab_widget, asset_name)
         self.stock_widgets[asset_name] = widgets
 
+    # Resto dos métodos permanecem iguais, apenas com fontes corrigidas onde necessário...
     def update_all_views(self):
         """Atualização melhorada com feedback visual"""
         try:
@@ -634,7 +661,7 @@ class MainWindow(QMainWindow):
         location_name = location_text.replace("🏢 ", "").replace("🏪 ", "")
         
         self.view_flow_button.setEnabled(True)
-        self.view_visual_flow_button.setEnabled(True)
+        self.view_visual_flow_button.setEnabled(True)  # **CORREÇÃO: Sempre habilitado**
         self.export_button.setEnabled(True)
         
         # Busca histórico
@@ -667,8 +694,9 @@ class MainWindow(QMainWindow):
             
             self.history_model.appendRow(items)
         
-        # Configura colunas
+        # **CORREÇÃO: Configura colunas com tamanhos adequados**
         header = self.history_table.horizontalHeader()
+        header.setFont(QFont("Arial", 10, QFont.Bold))  # **CORREÇÃO: Fonte maior no header**
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Data
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)  # Movimento
         header.setSectionResizeMode(2, QHeaderView.ResizeToContents)  # RTI
@@ -676,6 +704,7 @@ class MainWindow(QMainWindow):
         header.setSectionResizeMode(4, QHeaderView.Stretch)           # Destino
         header.setSectionResizeMode(5, QHeaderView.ResizeToContents)  # Quantidade
 
+    # Resto dos métodos permanecem iguais...
     def quick_upload_inventory(self):
         """Upload rápido de inventário pelo menu"""
         file_path, _ = QFileDialog.getOpenFileName(
@@ -741,29 +770,12 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 QMessageBox.critical(self, "Erro no Upload", f"Falha ao processar arquivo:\n{e}")
 
-    def show_visual_flow_dialog(self):
-        """Mostra o novo diálogo de fluxo visual"""
-        location_text = self.location_combo.currentText()
-        if location_text and "Selecione" not in location_text:
-            location_name = location_text.replace("🏢 ", "").replace("🏪 ", "")
-            
-            # Verifica se é loja (fluxo visual só funciona para lojas com inventário)
-            if not location_name.startswith('LOJA'):
-                QMessageBox.information(
-                    self, "Informação", 
-                    "O fluxo visual está disponível apenas para lojas com inventário inicial."
-                )
-                return
-            
-            dialog = FlowVisualDialog(location_name, self.db, self)
-            dialog.exec_()
-
     def show_flow_dialog(self):
         """Mostra diálogo de fluxo clássico"""
         location_text = self.location_combo.currentText()
         if location_text and "Selecione" not in location_text:
             location_name = location_text.replace("🏢 ", "").replace("🏪 ", "")
-            flow_data = self.db.get_flow_data(location_name)
+            flow_data = self.db.get_location_history(location_name)  # **CORREÇÃO: Usa histórico em vez de flow_data**
             dialog = FlowDialog(location_name, flow_data, self)
             dialog.exec_()
 
@@ -772,7 +784,7 @@ class MainWindow(QMainWindow):
         try:
             file_path, _ = QFileDialog.getSaveFileName(
                 self, "Salvar Relatório Completo", 
-                f"relatorio_completo_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx", 
+                f"relatorio_completo_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.xlsx", 
                 "Excel (*.xlsx)"
             )
             
@@ -807,8 +819,8 @@ class MainWindow(QMainWindow):
                     
                     # Inventário inicial
                     inventory_query = """
-                    SELECT loja_nome, ativo, quantidade, data_inventario
-                    FROM inventario_inicial ORDER BY loja_nome
+                    SELECT loja_nome_simples, ativo, quantidade, data_inventario
+                    FROM inventario_inicial ORDER BY loja_nome_simples
                     """
                     inventory = self.db._execute_query(inventory_query)
                     if inventory:
@@ -875,7 +887,19 @@ class MainWindow(QMainWindow):
             event.ignore()
 
 if __name__ == '__main__':
+    # **CORREÇÃO CRÍTICA: Configura DPI ANTES de criar QApplication**
+    os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+    os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
+    os.environ["QT_SCALE_FACTOR"] = "1.0"
+    
     app = QApplication(sys.argv)
+    
+    # **CORREÇÃO: Ativa High DPI scaling**
+    app.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+    app.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+    
+    # **CORREÇÃO: Configura font global da aplicação**
+    app.setFont(QFont("Arial", 10))
     
     # Configuração do estilo da aplicação
     app.setStyle('Fusion')
